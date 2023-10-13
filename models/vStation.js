@@ -8,6 +8,10 @@ const vStation = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    isBusy:{
+        type:DataTypes.BOOLEAN,
+        defaultValue:1
+    },
     Songs: {
       type: DataTypes.JSON,
       allowNull: true,
@@ -23,9 +27,11 @@ const vStation = sequelize.define(
     },
     StationDescription: {
       type: DataTypes.STRING,
+      allowNull:true,
     },
     topSongs: {
-      type: DataTypes.JSON, // Assuming topSongs is an array of songs
+      type: DataTypes.JSON,
+      allowNull:true // Assuming topSongs is an array of songs
     },
   },
   {

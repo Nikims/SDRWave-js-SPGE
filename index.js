@@ -259,4 +259,41 @@ router.get("/chatMessages", async (req, res) => {
   }
 });
 
+router.post('/createVirtualRadio', async (req, res) => {
+    try {
+      const { youtubeLink, stationName, stationDescription } = req.body;
+        if(!stationDescription){
+            stationDescription="Just a radio :p"
+        }
+      if (!youtubeLink || !stationName) {
+        return res.status(400).json({ error: 'YouTube link and station name are required.' });
+      }
+      
+      const newVStation = await vStation.create({
+        StationName: stationName,
+        StationDescription: stationDescription,
+        topSongs: topSongs,
+        isBusy: true,
+      });
+  
+      const childProcess = spawn('node', [process.env.YAPHPATH, youtubeLink, '-t', '10', '-f', 'audioonly', '-q', 'highest', '-o', `/home/nike/ebavkiyoutube/yaph/${newVStation.id}`]);
+  
+      // Listen for the 'exit' event of the child process
+      childProcess.on('exit', (code) => {
+        // Once the child process has finished, mark the station as not busy
+        vStation.update({ isBusy: false }, { where: { id: newVStation.id } });
+        console.log(`Child process exited with code ${code}`);
+      });
+  
+      // Handle subprocess stdout, error, etc.
+  
+      return res.json({ message: 'Virtual radio created successfully', vStation: newVStation });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+
+
 module.exports = router;
