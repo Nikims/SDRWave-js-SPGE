@@ -1,12 +1,45 @@
 const express = require("express");
 const router = express.Router();
-const { RadioStation } = require("./models/Radiostation");
-const sequelize = require("./db/db");
+let RadioStation  = require("./models/Radiostation");
 let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
-sequelize.sync();
+const sequelize = require("./db/db");
+sequelize.authenticate().then(async function(errors) {
 User = sequelize.models.User;
+vStation = sequelize.models.vStation;
+RadioStation = sequelize.models.RadioStation;
+
+
+sequelize.sync({force:false});
+    
+// await vStation.create({
+//     StationName: 'Radio Station A',
+//     StationDescription: 'Broadcasting top hits 24/7.',
+//     currentListeners: 150,
+//     isBusy: 1,
+//     Songs: { "song1": "Title A", "song2": "Title B" },
+//     topSongs: ["Song A", "Song B", "Song C"]
+//   });
+//   await vStation.create({
+//     StationName: 'Chill Beats FM',
+//     StationDescription: 'Relax and enjoy the smooth beats.',
+//     currentListeners: 120,
+//     isBusy: 1,
+//     Songs: { "song1": "Title E", "song2": "Title F" },
+//     topSongs: ["Song G", "Song H", "Song I"]
+//   });
+  
+//   await vStation.create({
+//     StationName: 'Rock n Roll Radio',
+//     StationDescription: 'Bringing the best of rock music.',
+//     currentListeners: 80,
+//     isBusy: 0,
+//     Songs: { "song1": "Title C", "song2": "Title D" },
+//     topSongs: ["Song D", "Song E", "Song F"]
+//   });
+//     console.log(errors) });
+})
 const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
@@ -143,6 +176,16 @@ router.post("/signin", async (req, res) => {
   }
 });
 
+router.get("/getRadioStations",async (req,res)=>{
+    realRadios=await RadioStation.findAll({where:{
+
+
+    }})
+    vRadios=await vStation.findAll({where:{
+        
+    }})
+    res.send(realRadios.concat(vRadios))
+})
 router.use(async (req, res, next) => {
     console.log(req.session, req.path,req.body)
     if(!req.session){
@@ -169,17 +212,21 @@ router.get("/tuneIn", async (req, res) => {
     }
 
     let station;
+    us = await User.findByPk(req.session.userId)
 
     if (virtual) {
       station = await vStation.findByPk(stationId);
+        us.isTunedToVirtual=true
+
     } else {
+      us.isTunedToVirtual=false
       station = await RadioStation.findByPk(stationId);
     }
 
     if (!station) {
       return res.status(404).json({ error: "Station not found." });
     }
-
+    us.tunedStationID=station.id
     // Update the User's tunedStationID here
 
     return res.json({ message: "Tuned in successfully", station });
@@ -190,8 +237,12 @@ router.get("/tuneIn", async (req, res) => {
 });
 
 router.post("/changeTunedFreq", async (req, res) => {
+
   try {
+    
+    curUs=User.findByPk(req.session.userId)
     const { id, newFrequency } = req.query;
+    if(!curUs.isTunedToVirtual){
 
     if (!id || !newFrequency) {
       return res
@@ -209,10 +260,11 @@ router.post("/changeTunedFreq", async (req, res) => {
     await radioStation.save();
 
     return res.json({ message: "Tuned frequency updated successfully." });
-  } catch (error) {
+  }} catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
+
 });
 
 router.post("/chatMessage", async (req, res) => {
@@ -259,6 +311,9 @@ router.get("/chatMessages", async (req, res) => {
   }
 });
 
+  
+ 
+
 router.post('/createVirtualRadio', async (req, res) => {
     try {
       const { youtubeLink, stationName, stationDescription } = req.body;
@@ -293,6 +348,7 @@ router.post('/createVirtualRadio', async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
+  
   
 
 

@@ -16,6 +16,12 @@ const User = sequelize.define(
       unique: false,
       defaultValue: false,
     },
+    isTunedToVirtual:{
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        unique: false,
+        defaultValue: false,
+    },
     tunedStationID: {
       type: DataTypes.STRING,
       allowNull: true,

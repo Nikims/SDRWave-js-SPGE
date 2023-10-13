@@ -35,8 +35,9 @@ const vStation = sequelize.define(
     },
   },
   {
+}, {
     // Other model options go here
   },
 );
-vStation.sync();
+vStation.sync({force:false});
 // You can add more options and validation as needed for your RadioStation model.
