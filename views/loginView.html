@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      #cred-container {
+        display: flex;
+        background-color: rgb(78, 78, 78);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 60vw;
+        height: 100vh;
+        z-index: 3;
+      }
+
+      .input-field {
+        text-align: center;
+        height: 20px;
+        width: 80%;
+        align-self: center;
+      }
+
+      .login-form {
+        border-radius: 6px;
+        font-family: Arial, Helvetica, sans-serif;
+        position: relative;
+        z-index: 4;
+        color: aquamarine;
+        text-align: center;
+        background-color: rgb(39, 39, 39);
+        line-height: 80%;
+        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        width: 40vw;
+        height: fit-content;
+        overflow: hidden;
+        transition: 0.3s;
+        overflow: visible;
+      }
+
+      .login-button {
+        font-size: large;
+        height: 46px;
+        width: 30%;
+        align-self: center;
+        margin-top: 25%;
+        margin-top: 15%;
+        margin-bottom: 2%;
+      }
+
+      .label {
+        text-decoration: underline;
+        font-weight: 700;
+        font-size: large;
+        font-family: Arial, Helvetica, sans-serif;
+        color: aliceblue;
+      }
+    </style>
+    <title>Login Page</title>
+  </head>
+
+  <body>
+    <div id="cred-container">
+      <form class="login-form">
+        <br style="height: 40px" />
+        <label class="label" for="usernameOrEmail">Username/Email:</label><br />
+        <input
+          class="input-field"
+          type="text"
+          id="usernameOrEmail"
+          name="usernameOrEmail"
+        /><br /><br />
+        <label class="label" for="password">Password:</label><br />
+        <input
+          class="input-field"
+          type="password"
+          id="password"
+          name="password"
+        /><br /><br />
+        <button class="login-button" type="submit">Login</button>
+      </form>
+    </div>
+  </body>
+  <script>
+    document
+      .querySelector(".login-button")
+      .addEventListener("click", async (event) => {
+        event.preventDefault(); // Prevent form submission
+
+        const usernameOrEmail =
+          document.getElementById("usernameOrEmail").value;
+        const password = document.getElementById("password").value;
+
+        const data = {
+          email: usernameOrEmail,
+          password: password,
+        };
+
+        fetch("/signin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            window.href.location = "/home";
+          })
+          .catch((error) => {
+            console.error(error);
+            // Handle the error
+          });
+      });
+  </script>
+</html>

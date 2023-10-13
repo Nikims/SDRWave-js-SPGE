@@ -8,9 +8,9 @@ const vStation = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-    isBusy:{
-        type:DataTypes.BOOLEAN,
-        defaultValue:1
+    isBusy: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: 1,
     },
     Songs: {
       type: DataTypes.JSON,
@@ -27,17 +27,17 @@ const vStation = sequelize.define(
     },
     StationDescription: {
       type: DataTypes.STRING,
-      allowNull:true,
+      allowNull: true,
     },
     topSongs: {
       type: DataTypes.JSON,
-      allowNull:true // Assuming topSongs is an array of songs
+      allowNull: true, // Assuming topSongs is an array of songs
     },
   },
+  {},
   {
-}, {
     // Other model options go here
   },
 );
-vStation.sync({force:false});
+vStation.sync({ force: false });
 // You can add more options and validation as needed for your RadioStation model.

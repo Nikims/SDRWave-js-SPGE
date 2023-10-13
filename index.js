@@ -1,45 +1,44 @@
 const express = require("express");
 const router = express.Router();
-let RadioStation  = require("./models/Radiostation");
+let RadioStation = require("./models/Radiostation");
 let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 const sequelize = require("./db/db");
-sequelize.authenticate().then(async function(errors) {
-User = sequelize.models.User;
-vStation = sequelize.models.vStation;
-RadioStation = sequelize.models.RadioStation;
+sequelize.authenticate().then(async function (errors) {
+  User = sequelize.models.User;
+  vStation = sequelize.models.vStation;
+  RadioStation = sequelize.models.RadioStation;
 
+  sequelize.sync({ force: false });
 
-sequelize.sync({force:false});
-    
-// await vStation.create({
-//     StationName: 'Radio Station A',
-//     StationDescription: 'Broadcasting top hits 24/7.',
-//     currentListeners: 150,
-//     isBusy: 1,
-//     Songs: { "song1": "Title A", "song2": "Title B" },
-//     topSongs: ["Song A", "Song B", "Song C"]
-//   });
-//   await vStation.create({
-//     StationName: 'Chill Beats FM',
-//     StationDescription: 'Relax and enjoy the smooth beats.',
-//     currentListeners: 120,
-//     isBusy: 1,
-//     Songs: { "song1": "Title E", "song2": "Title F" },
-//     topSongs: ["Song G", "Song H", "Song I"]
-//   });
-  
-//   await vStation.create({
-//     StationName: 'Rock n Roll Radio',
-//     StationDescription: 'Bringing the best of rock music.',
-//     currentListeners: 80,
-//     isBusy: 0,
-//     Songs: { "song1": "Title C", "song2": "Title D" },
-//     topSongs: ["Song D", "Song E", "Song F"]
-//   });
-//     console.log(errors) });
-})
+  // await vStation.create({
+  //     StationName: 'Radio Station A',
+  //     StationDescription: 'Broadcasting top hits 24/7.',
+  //     currentListeners: 150,
+  //     isBusy: 1,
+  //     Songs: { "song1": "Title A", "song2": "Title B" },
+  //     topSongs: ["Song A", "Song B", "Song C"]
+  //   });
+  //   await vStation.create({
+  //     StationName: 'Chill Beats FM',
+  //     StationDescription: 'Relax and enjoy the smooth beats.',
+  //     currentListeners: 120,
+  //     isBusy: 1,
+  //     Songs: { "song1": "Title E", "song2": "Title F" },
+  //     topSongs: ["Song G", "Song H", "Song I"]
+  //   });
+
+  //   await vStation.create({
+  //     StationName: 'Rock n Roll Radio',
+  //     StationDescription: 'Bringing the best of rock music.',
+  //     currentListeners: 80,
+  //     isBusy: 0,
+  //     Songs: { "song1": "Title C", "song2": "Title D" },
+  //     topSongs: ["Song D", "Song E", "Song F"]
+  //   });
+  //     console.log(errors) });
+});
 const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
@@ -62,12 +61,7 @@ app.use(
   }),
 );
 const server = app.listen(3000, () => {
-    console.log(`Server is running on port ${3000}`);
-  });
-  
-router.get("/", (req, res) => {
-  console.log("ok");
-  res.sendFile(__dirname + "/ok.html");
+  console.log(`Server is running on port ${3000}`);
 });
 
 app.use("/api", async (req, res, next) => {
@@ -87,12 +81,10 @@ app.use("/api", async (req, res, next) => {
     const tunedRadioStation = await RadioStation.findByPk(user.tunedStationID);
 
     if (!tunedRadioStation || !tunedRadioStation.hostSource) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Tuned radio station not found or missing host source information.",
-        });
+      return res.status(404).json({
+        error:
+          "Tuned radio station not found or missing host source information.",
+      });
     }
 
     const hostSource = tunedRadioStation.hostSource;
@@ -108,7 +100,6 @@ app.use("/api", async (req, res, next) => {
   }
 });
 
-  
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -117,10 +108,14 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    const existingUser = await User.findOne({ where: { email } }) || await User.findOne({ where: { username } });
+    const existingUser =
+      (await User.findOne({ where: { email } })) ||
+      (await User.findOne({ where: { username } }));
 
     if (existingUser) {
-      return res.status(400).json({ error: "Email or username is already in use." });
+      return res
+        .status(400)
+        .json({ error: "Email or username is already in use." });
     }
 
     const saltRounds = 10;
@@ -129,11 +124,11 @@ router.post("/signup", async (req, res) => {
     const newUser = await User.create({
       username,
       email,
-      password: hashedPassword,
+      hashedPassword: hashedPassword,
     });
-    req.session={userId:0}
+    req.session = { userId: 0 };
     req.session.userId = newUser.id;
-    console.log(req.session.userId)
+    console.log(req.session.userId);
     return res.json({ message: "Signup successful", user: newUser });
   } catch (error) {
     console.error(error);
@@ -156,7 +151,8 @@ router.post("/signin", async (req, res) => {
     if (!existingUser) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
-    console.log(password,existingUser.hashedPassword)
+    console.log(existingUser);
+    console.log(password, existingUser.hashedPassword);
 
     const passwordMatch = await bcrypt.compare(
       password,
@@ -166,7 +162,9 @@ router.post("/signin", async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
-
+    if (!req.session) {
+      req.session = { userId: 0 };
+    }
     req.session.userId = existingUser.id;
 
     return res.json({ message: "Sign-in successful", user: existingUser });
@@ -176,31 +174,41 @@ router.post("/signin", async (req, res) => {
   }
 });
 
-router.get("/getRadioStations",async (req,res)=>{
-    realRadios=await RadioStation.findAll({where:{
-
-
-    }})
-    vRadios=await vStation.findAll({where:{
-        
-    }})
-    res.send(realRadios.concat(vRadios))
-})
+router.get("/getRadioStations", async (req, res) => {
+  realRadios = await RadioStation.findAll({ where: {} });
+  vRadios = await vStation.findAll({ where: {} });
+  res.send(realRadios.concat(vRadios));
+});
 router.use(async (req, res, next) => {
-    console.log(req.session, req.path,req.body)
-    if(!req.session){
-        req.session={userId:0}
-        res.send("No session found so far, so one has been created")
+  console.log(req.session, req.path, req.body);
+  if (!req.session) {
+    req.session = { userId: 0 };
+    // res.send("No session found so far, so one has been created")
+  }
+  if (req.session.userId !== 0) {
+    const usr = await User.findByPk(req.session.userId);
+
+    if (!usr) {
+      res.redirect("/login");
+    } else {
+      next();
     }
-    if (req.session.userId) {
-      usr = await User.findByPk(req.session.userId);
-      if (!usr) {
-        res.redirect("/login");
-      } else {
-        next();
-      }
-    }
-  });
+  } else {
+    next(); // Continue without redirect if userId is 0
+  }
+});
+
+router.get("/", (req, res) => {
+  res.sendFile(__dirname + "/ok.html");
+});
+
+router.get("/login", (req, res) => {
+  res.sendFile(__dirname + "/views/loginView.html");
+});
+router.get("/stations", (req, res) => {
+  res.sendFile(__dirname + "./views/Stations.html");
+});
+
 router.get("/tuneIn", async (req, res) => {
   try {
     const { stationId, virtual } = req.query;
@@ -212,21 +220,20 @@ router.get("/tuneIn", async (req, res) => {
     }
 
     let station;
-    us = await User.findByPk(req.session.userId)
+    us = await User.findByPk(req.session.userId);
 
     if (virtual) {
       station = await vStation.findByPk(stationId);
-        us.isTunedToVirtual=true
-
+      us.isTunedToVirtual = true;
     } else {
-      us.isTunedToVirtual=false
+      us.isTunedToVirtual = false;
       station = await RadioStation.findByPk(stationId);
     }
 
     if (!station) {
       return res.status(404).json({ error: "Station not found." });
     }
-    us.tunedStationID=station.id
+    us.tunedStationID = station.id;
     // Update the User's tunedStationID here
 
     return res.json({ message: "Tuned in successfully", station });
@@ -237,34 +244,31 @@ router.get("/tuneIn", async (req, res) => {
 });
 
 router.post("/changeTunedFreq", async (req, res) => {
-
   try {
-    
-    curUs=User.findByPk(req.session.userId)
+    curUs = User.findByPk(req.session.userId);
     const { id, newFrequency } = req.query;
-    if(!curUs.isTunedToVirtual){
+    if (!curUs.isTunedToVirtual) {
+      if (!id || !newFrequency) {
+        return res
+          .status(400)
+          .json({ error: "Both ID and newFrequency are required." });
+      }
 
-    if (!id || !newFrequency) {
-      return res
-        .status(400)
-        .json({ error: "Both ID and newFrequency are required." });
+      const radioStation = await RadioStation.findByPk(id);
+
+      if (!radioStation) {
+        return res.status(404).json({ error: "Radio station not found." });
+      }
+
+      radioStation.tunedFrequency = parseFloat(newFrequency);
+      await radioStation.save();
+
+      return res.json({ message: "Tuned frequency updated successfully." });
     }
-
-    const radioStation = await RadioStation.findByPk(id);
-
-    if (!radioStation) {
-      return res.status(404).json({ error: "Radio station not found." });
-    }
-
-    radioStation.tunedFrequency = parseFloat(newFrequency);
-    await radioStation.save();
-
-    return res.json({ message: "Tuned frequency updated successfully." });
-  }} catch (error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-
 });
 
 router.post("/chatMessage", async (req, res) => {
@@ -311,45 +315,55 @@ router.get("/chatMessages", async (req, res) => {
   }
 });
 
-  
- 
-
-router.post('/createVirtualRadio', async (req, res) => {
-    try {
-      const { youtubeLink, stationName, stationDescription } = req.body;
-        if(!stationDescription){
-            stationDescription="Just a radio :p"
-        }
-      if (!youtubeLink || !stationName) {
-        return res.status(400).json({ error: 'YouTube link and station name are required.' });
-      }
-      
-      const newVStation = await vStation.create({
-        StationName: stationName,
-        StationDescription: stationDescription,
-        topSongs: topSongs,
-        isBusy: true,
-      });
-  
-      const childProcess = spawn('node', [process.env.YAPHPATH, youtubeLink, '-t', '10', '-f', 'audioonly', '-q', 'highest', '-o', `/home/nike/ebavkiyoutube/yaph/${newVStation.id}`]);
-  
-      // Listen for the 'exit' event of the child process
-      childProcess.on('exit', (code) => {
-        // Once the child process has finished, mark the station as not busy
-        vStation.update({ isBusy: false }, { where: { id: newVStation.id } });
-        console.log(`Child process exited with code ${code}`);
-      });
-  
-      // Handle subprocess stdout, error, etc.
-  
-      return res.json({ message: 'Virtual radio created successfully', vStation: newVStation });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+router.post("/createVirtualRadio", async (req, res) => {
+  try {
+    const { youtubeLink, stationName, stationDescription } = req.body;
+    if (!stationDescription) {
+      stationDescription = "Just a radio :p";
     }
-  });
-  
-  
+    if (!youtubeLink || !stationName) {
+      return res
+        .status(400)
+        .json({ error: "YouTube link and station name are required." });
+    }
 
+    const newVStation = await vStation.create({
+      StationName: stationName,
+      StationDescription: stationDescription,
+      topSongs: topSongs,
+      isBusy: true,
+    });
+
+    const childProcess = spawn("node", [
+      process.env.YAPHPATH,
+      youtubeLink,
+      "-t",
+      "10",
+      "-f",
+      "audioonly",
+      "-q",
+      "highest",
+      "-o",
+      `/home/nike/ebavkiyoutube/yaph/${newVStation.id}`,
+    ]);
+
+    // Listen for the 'exit' event of the child process
+    childProcess.on("exit", (code) => {
+      // Once the child process has finished, mark the station as not busy
+      vStation.update({ isBusy: false }, { where: { id: newVStation.id } });
+      console.log(`Child process exited with code ${code}`);
+    });
+
+    // Handle subprocess stdout, error, etc.
+
+    return res.json({
+      message: "Virtual radio created successfully",
+      vStation: newVStation,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = router;

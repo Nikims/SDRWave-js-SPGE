@@ -16,11 +16,11 @@ const User = sequelize.define(
       unique: false,
       defaultValue: false,
     },
-    isTunedToVirtual:{
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        unique: false,
-        defaultValue: false,
+    isTunedToVirtual: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      unique: false,
+      defaultValue: false,
     },
     tunedStationID: {
       type: DataTypes.STRING,
@@ -34,9 +34,9 @@ const User = sequelize.define(
     likedVStationsIDs: {
       type: DataTypes.JSON, // Assuming likedVStationsIDs is an array of IDs
     },
-    password: {
+    hashedPassword: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     email: {
       type: DataTypes.STRING,
