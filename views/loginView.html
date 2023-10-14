@@ -16,12 +16,12 @@
       .input-field {
         text-align: center;
         height: 20px;
-        width: 80%;
+        width: 63%;
         align-self: center;
       }
 
       .login-form {
-        border-radius: 6px;
+        border-radius: 40px;
         font-family: Arial, Helvetica, sans-serif;
         position: relative;
         z-index: 4;
@@ -36,17 +36,17 @@
         height: fit-content;
         overflow: hidden;
         transition: 0.3s;
-        overflow: visible;
+        overflow: hidden;
       }
 
-      .login-button {
+      .auth-button {
         font-size: large;
         height: 46px;
         width: 30%;
         align-self: center;
         margin-top: 25%;
-        margin-top: 15%;
-        margin-bottom: 2%;
+        margin-top: 3%;
+        margin-bottom: 5%;
       }
 
       .label {
@@ -78,14 +78,27 @@
           id="password"
           name="password"
         /><br /><br />
-        <button class="login-button" type="submit">Login</button>
+        <div
+          style="
+            display: flex;
+            flex-direction: row; /* justify-items: right; */
+            margin-inline-start: 28%;
+          "
+        >
+          <button id="signinBtn" class="auth-button" type="submit">
+            Login
+          </button>
+          <button id="signupBtn" class="auth-button" type="submit">
+            Sign up
+          </button>
+        </div>
+        <span id="response-msg"></span>
       </form>
     </div>
   </body>
   <script>
-    document
-      .querySelector(".login-button")
-      .addEventListener("click", async (event) => {
+    document.querySelectorAll(".auth-button").forEach((btn) => {
+      btn.addEventListener("click", async (event) => {
         event.preventDefault(); // Prevent form submission
 
         const usernameOrEmail =
@@ -93,11 +106,11 @@
         const password = document.getElementById("password").value;
 
         const data = {
-          email: usernameOrEmail,
+          username: usernameOrEmail,
           password: password,
         };
 
-        fetch("/signin", {
+        fetch(`/${btn.id.slice(0, -3)}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -106,12 +119,16 @@
         })
           .then((response) => response.json())
           .then((data) => {
-            window.href.location = "/home";
+            document.querySelector("#response-msg").innerText = data.error
+              ? data.error
+              : data.message;
+            if (data.user) window.location.href = "/";
           })
           .catch((error) => {
             console.error(error);
             // Handle the error
           });
       });
+    });
   </script>
 </html>

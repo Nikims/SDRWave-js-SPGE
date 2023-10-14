@@ -10,37 +10,49 @@
   </body>
   <script>
     let stations = 0;
-    fetch("/getRadioStations").then((res) => {
-      stations = res;
-    });
-    for (i of stations) {
-      n = document.createElement("div");
-      n.classList.add("radio-box");
-      nameDiv = document.createElement("div");
+    fetch("/getRadioStations")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json(); // Assuming the response is in JSON format
+      })
+      .then((data) => {
+        // Use the data here
+        stations = data;
+        console.log(stations);
+        for (i of stations) {
+          n = document.createElement("div");
+          n.classList.add("radio-box");
+          nameDiv = document.createElement("div");
 
-      n.innerHTML = `<p class="movtext">${i.StationDescription}</p>`;
-      nameDiv.innerText = i.StationName;
-      nameDiv.classList.add("radio-name-cnt");
-      n.appendChild(nameDiv);
+          n.innerHTML = `<p class="movtext">${i.StationDescription}</p>`;
+          nameDiv.innerText = i.StationName;
+          nameDiv.classList.add("radio-name-cnt");
+          n.appendChild(nameDiv);
 
-      document.getElementById("radios-container").appendChild(n);
-    }
-    for (i of document.getElementsByClassName("movtext")) {
-      i.style.animationDelay = `${Math.random() * 1}s`;
-    }
+          document.getElementById("radios-container").appendChild(n);
+        }
+        for (i of document.getElementsByClassName("movtext")) {
+          i.style.animationDelay = `${Math.random() * 1}s`;
+        }
+      });
   </script>
   <style>
     #radios-container {
       display: flex;
+      position: absolute;
       background-color: rgb(78, 78, 78);
       flex-direction: column;
       justify-content: center;
       align-content: center;
       width: 60vw;
-      height: 100vh;
+      top: 5%;
+      height: min-content;
       z-index: 3;
     }
     .radio-box {
+      padding: 6px;
       border-radius: 6px;
       font-family: Arial, Helvetica, sans-serif;
       position: relative;
@@ -57,31 +69,38 @@
       overflow: hidden;
       transition: 0.3s;
       left: 15%;
+      border-style: double;
+      justify-content: flex-end;
+      max-width: 400px;
     }
     .radio-name-cnt {
-      text-decoration: underline;
       font-weight: 700;
       font-size: large;
       font-family: Arial, Helvetica, sans-serif;
-      color: aliceblue;
+      color: black;
       max-height: min-content;
-      flex: 4;
+      line-height: 100%;
+      height: fit-content;
+      min-width: 40%;
+      max-width: 40%;
+      background: springgreen;
     }
     .radio-box > p {
       z-index: 1;
-      margin-top: 5%;
+      margin-top: 10%;
       display: inline;
       position: relative;
       animation: marquee 10s linear infinite;
       transition:
         animation-duration 0.5s,
         height 0.5s; /* Adding transition for smooth effect */
+      min-width: max-content;
     }
 
     .radio-box:hover {
-      animation-duration: 20s; /* Slower animation on hover */
+      animation-duration: 5; /* Slower animation on hover */
       transition: 0.3s;
-      height: 10%; /* Bigger height on hover */
+      padding: 4%; /* Bigger height on hover */
     }
 
     @keyframes marquee {

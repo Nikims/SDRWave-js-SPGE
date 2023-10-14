@@ -12,36 +12,38 @@ sequelize.authenticate().then(async function (errors) {
 
   sequelize.sync({ force: false });
 
-  // await vStation.create({
-  //     StationName: 'Radio Station A',
-  //     StationDescription: 'Broadcasting top hits 24/7.',
-  //     currentListeners: 150,
-  //     isBusy: 1,
-  //     Songs: { "song1": "Title A", "song2": "Title B" },
-  //     topSongs: ["Song A", "Song B", "Song C"]
-  //   });
-  //   await vStation.create({
-  //     StationName: 'Chill Beats FM',
-  //     StationDescription: 'Relax and enjoy the smooth beats.',
-  //     currentListeners: 120,
-  //     isBusy: 1,
-  //     Songs: { "song1": "Title E", "song2": "Title F" },
-  //     topSongs: ["Song G", "Song H", "Song I"]
-  //   });
+  await vStation.create({
+    StationName: "Radio Station A",
+    StationDescription: "Broadcasting top hits 24/7.",
+    currentListeners: 150,
+    isBusy: 1,
+    Songs: { song1: "Title A", song2: "Title B" },
+    topSongs: ["Song A", "Song B", "Song C"],
+  });
+  await vStation.create({
+    StationName: "Chill Beats FM",
+    StationDescription: "Relax and enjoy the smooth beats.",
+    currentListeners: 120,
+    isBusy: 1,
+    Songs: { song1: "Title E", song2: "Title F" },
+    topSongs: ["Song G", "Song H", "Song I"],
+  });
 
-  //   await vStation.create({
-  //     StationName: 'Rock n Roll Radio',
-  //     StationDescription: 'Bringing the best of rock music.',
-  //     currentListeners: 80,
-  //     isBusy: 0,
-  //     Songs: { "song1": "Title C", "song2": "Title D" },
-  //     topSongs: ["Song D", "Song E", "Song F"]
-  //   });
-  //     console.log(errors) });
+  await vStation.create({
+    StationName: "Rock n Roll Radio",
+    StationDescription: "Bringing the best of rock music.",
+    currentListeners: 80,
+    isBusy: 0,
+    Songs: { song1: "Title C", song2: "Title D" },
+    topSongs: ["Song D", "Song E", "Song F"],
+  });
+  // console.log(errors) });
 });
 const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
+app.use(express.static(__dirname + "/public"));
+
 const session = require("express-session");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -102,15 +104,13 @@ app.use("/api", async (req, res, next) => {
 
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !password) {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    const existingUser =
-      (await User.findOne({ where: { email } })) ||
-      (await User.findOne({ where: { username } }));
+    const existingUser = await User.findOne({ where: { username } });
 
     if (existingUser) {
       return res
@@ -123,8 +123,7 @@ router.post("/signup", async (req, res) => {
 
     const newUser = await User.create({
       username,
-      email,
-      hashedPassword: hashedPassword,
+      hashedPassword,
     });
     req.session = { userId: 0 };
     req.session.userId = newUser.id;
@@ -138,18 +137,18 @@ router.post("/signup", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
+    if (!username || !password) {
       return res
         .status(400)
         .json({ error: "Both email and password are required." });
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { username } });
 
     if (!existingUser) {
-      return res.status(401).json({ error: "Invalid email or password." });
+      return res.status(401).json({ error: "No record of user found." });
     }
     console.log(existingUser);
     console.log(password, existingUser.hashedPassword);
@@ -162,15 +161,12 @@ router.post("/signin", async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
-    if (!req.session) {
-      req.session = { userId: 0 };
-    }
-    req.session.userId = existingUser.id;
+    req.session = { userId: existingUser.id };
 
     return res.json({ message: "Sign-in successful", user: existingUser });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -179,34 +175,51 @@ router.get("/getRadioStations", async (req, res) => {
   vRadios = await vStation.findAll({ where: {} });
   res.send(realRadios.concat(vRadios));
 });
+
 router.use(async (req, res, next) => {
-  console.log(req.session, req.path, req.body);
+  console.log("---" + req.session, req.path, req.body);
+
   if (!req.session) {
     req.session = { userId: 0 };
-    // res.send("No session found so far, so one has been created")
   }
-  if (req.session.userId !== 0) {
-    const usr = await User.findByPk(req.session.userId);
+  let usr;
+  if (req.session.userId != 0) {
+    usr = await User.findByPk(req.session.userId);
 
-    if (!usr) {
-      res.redirect("/login");
+    if (usr) {
+      return res.next();
+    } else if (req.path != "/login") {
+      return res.redirect("/login");
     } else {
-      next();
+      return res.redirect("/home");
     }
-  } else {
-    next(); // Continue without redirect if userId is 0
   }
+  return next();
+
+  // if (req.session.userId != 0) {
+  //   const usr = await User.findByPk(req.session.userId);
+  //   console.log("++++" + usr);
+
+  //   if (!usr) {
+  //     return res.redirect("/login");
+  //   } else return next();
+  // } else {
+  //  return res.redirect("/login");
+  // }
 });
 
-router.get("/", (req, res) => {
-  res.sendFile(__dirname + "/ok.html");
-});
+// router.get("/", (req, res) => {
+//   res.sendFile(__dirname + "/ok.html");
+// });
 
 router.get("/login", (req, res) => {
   res.sendFile(__dirname + "/views/loginView.html");
 });
-router.get("/stations", (req, res) => {
-  res.sendFile(__dirname + "./views/Stations.html");
+router.get("/", (req, res) => {
+  res.sendFile(__dirname + "/views/home.html");
+});
+router.get("/stationsPage", (req, res) => {
+  res.sendFile(__dirname + "/views/Stations.html");
 });
 
 router.get("/tuneIn", async (req, res) => {
