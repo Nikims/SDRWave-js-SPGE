@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbox</title>
+    <style>
+      body {
+        overflow: hidden;
+      }
+      #chatbox {
+        height: fit-content;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        padding: 10px;
+        max-height: 40%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chatbox">
+      <!-- Messages will be displayed here -->
+    </div>
+    <div>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type your message here"
+      />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+      // Function to load previous messages
+      function loadMessages() {
+        fetch("/chatMessages")
+          .then((response) => response.json())
+          .then((data) => {
+            const chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML = ""; // Clear the chatbox before loading new messages
+            console.log(data);
+            data.chatMessages.forEach((message) => {
+              const messageDiv = document.createElement("div");
+              messageDiv.textContent = `${message.senderUsername}: ${message.messageContent}`;
+              chatbox.appendChild(messageDiv);
+            });
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Function to send a message
+      function sendMessage() {
+        const messageInput = document.getElementById("messageInput");
+        const content = messageInput.value;
+        fetch("/chatMessage", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            loadMessages(); // Reload messages after sending a new message
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Load previous messages when the page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadMessages();
+      });
+    </script>
+    <style>
+      #chatbox > div {
+        font-weight: 500;
+        color: white;
+      }
+    </style>
+  </body>
+</html>

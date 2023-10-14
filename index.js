@@ -5,13 +5,31 @@ let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 const sequelize = require("./db/db");
+
+//todo, move routes to their appropriate folders and files
+//todo add audd music recognition
+
 sequelize.authenticate().then(async function (errors) {
   User = sequelize.models.User;
   vStation = sequelize.models.vStation;
   RadioStation = sequelize.models.RadioStation;
+  Message = sequelize.models.Message;
 
   sequelize.sync({ force: false });
 
+  await RadioStation.create({
+    StationName: "SDR RADIO",
+    StationDescription: "LISTEN LIVE.",
+    currentListeners: 80,
+    hostSource: "http://localhost:8080",
+    tunedFrequency: 100.5,
+    allowFreeTuning: true,
+    tunableRangeMin: 86,
+    tunableRangeMax: 105,
+    topSongs: ["Song D", "Song E", "Song F"],
+  });
+
+  //TEST DATA
   await vStation.create({
     StationName: "Radio Station A",
     StationDescription: "Broadcasting top hits 24/7.",
@@ -37,6 +55,7 @@ sequelize.authenticate().then(async function (errors) {
     Songs: { song1: "Title C", song2: "Title D" },
     topSongs: ["Song D", "Song E", "Song F"],
   });
+
   // console.log(errors) });
 });
 const bcrypt = require("bcrypt");
@@ -48,16 +67,18 @@ const session = require("express-session");
 const dotenv = require("dotenv");
 dotenv.config();
 const bodyParser = require("body-parser");
+const e = require("express");
 app.use(bodyParser.json());
 app.use(router);
-
-app.use(
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views"); // Assuming your EJS files are in the 'views' directory
+router.use(
   session({
     secret: process.env.SECRET,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
     },
   }),
@@ -66,14 +87,14 @@ const server = app.listen(3000, () => {
   console.log(`Server is running on port ${3000}`);
 });
 
-app.use("/api", async (req, res, next) => {
+router.use("/api", async (req, res, next) => {
   try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Unauthorized. Please sign in." });
-    }
+    // if (!req.session.userId) {
+    //   return res.status(401).json({ error: "Unauthorized. Please sign in." });
+    // }
 
     const user = await User.findByPk(req.session.userId);
-
+    console.warn(user);
     if (!user || !user.tunedStationID) {
       return res
         .status(404)
@@ -102,6 +123,29 @@ app.use("/api", async (req, res, next) => {
   }
 });
 
+router.use(async (req, res, next) => {
+  if (req.method == "GET") {
+    console.log("---" + req.session, req.path, req.body);
+
+    if (!req.session) {
+      req.session = { userId: 0 };
+    }
+    let usr;
+    if (req.session.userId != 0) {
+      usr = await User.findByPk(req.session.userId);
+
+      if (usr) {
+        if (req.path != "/login") {
+          return next();
+        } else {
+          return res.redirect("/");
+        }
+      }
+    }
+  }
+  return next();
+});
+
 router.post("/signup", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -125,7 +169,6 @@ router.post("/signup", async (req, res) => {
       username,
       hashedPassword,
     });
-    req.session = { userId: 0 };
     req.session.userId = newUser.id;
     console.log(req.session.userId);
     return res.json({ message: "Signup successful", user: newUser });
@@ -161,8 +204,7 @@ router.post("/signin", async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
-    req.session = { userId: existingUser.id };
-
+    req.session.userId = existingUser.id;
     return res.json({ message: "Sign-in successful", user: existingUser });
   } catch (error) {
     console.error(error);
@@ -173,50 +215,53 @@ router.post("/signin", async (req, res) => {
 router.get("/getRadioStations", async (req, res) => {
   realRadios = await RadioStation.findAll({ where: {} });
   vRadios = await vStation.findAll({ where: {} });
-  res.send(realRadios.concat(vRadios));
-});
+  result = realRadios.concat(vRadios);
+  user = await User.findByPk(req.session.userId);
 
-router.use(async (req, res, next) => {
-  console.log("---" + req.session, req.path, req.body);
-
-  if (!req.session) {
-    req.session = { userId: 0 };
-  }
-  let usr;
-  if (req.session.userId != 0) {
-    usr = await User.findByPk(req.session.userId);
-
-    if (usr) {
-      return res.next();
-    } else if (req.path != "/login") {
-      return res.redirect("/login");
-    } else {
-      return res.redirect("/home");
+  if (!user) {
+    for (i of result) {
+      if (i.isSDR) {
+        i.dataValues.loginRequired = true;
+        console.log(i);
+      }
     }
   }
-  return next();
-
-  // if (req.session.userId != 0) {
-  //   const usr = await User.findByPk(req.session.userId);
-  //   console.log("++++" + usr);
-
-  //   if (!usr) {
-  //     return res.redirect("/login");
-  //   } else return next();
-  // } else {
-  //  return res.redirect("/login");
-  // }
+  res.send(result);
 });
 
 // router.get("/", (req, res) => {
 //   res.sendFile(__dirname + "/ok.html");
 // });
-
+router.get("/", (r, res) => {
+  res.redirect("/home");
+});
+router.post("/logout", (req, res) => {
+  req.session.destroy();
+  res.redirect(303, "/");
+});
 router.get("/login", (req, res) => {
   res.sendFile(__dirname + "/views/loginView.html");
 });
-router.get("/", (req, res) => {
-  res.sendFile(__dirname + "/views/home.html");
+router.get("/player", async (req, res) => {
+  let user = await User.findByPk(req.session.userId);
+  if (user && user.tunedStationID) {
+    let radioHostname = (await RadioStation.findByPk(user.tunedStationID))
+      .hostSource;
+    res.render("player", { host: radioHostname });
+  } else {
+    res.render("player", { host: 0 });
+  }
+});
+router.get("/chat", async (req, res) => {
+  res.sendFile(__dirname + "/views/chatbox.html");
+});
+router.get("/home", async (req, res) => {
+  let user = await User.findByPk(req.session.userId);
+  if (!user || !user.username) {
+    console.log(req.session.userId);
+    user = { username: "Guest" };
+  }
+  res.render("home", { username: user.username });
 });
 router.get("/stationsPage", (req, res) => {
   res.sendFile(__dirname + "/views/Stations.html");
@@ -224,9 +269,10 @@ router.get("/stationsPage", (req, res) => {
 
 router.get("/tuneIn", async (req, res) => {
   try {
-    const { stationId, virtual } = req.query;
+    const { stationId } = req.query;
+    console.log(req.query);
 
-    if (!stationId || virtual === undefined) {
+    if (!stationId === undefined) {
       return res
         .status(400)
         .json({ error: "Both stationId and virtual are required." });
@@ -235,18 +281,20 @@ router.get("/tuneIn", async (req, res) => {
     let station;
     us = await User.findByPk(req.session.userId);
 
-    if (virtual) {
-      station = await vStation.findByPk(stationId);
-      us.isTunedToVirtual = true;
-    } else {
-      us.isTunedToVirtual = false;
+    station = await vStation.findByPk(stationId);
+    if (!station) {
       station = await RadioStation.findByPk(stationId);
     }
 
     if (!station) {
       return res.status(404).json({ error: "Station not found." });
     }
+    console.log(station);
     us.tunedStationID = station.id;
+    us.save();
+    us = await User.findByPk(req.session.userId);
+
+    console.log(us.tunedStationID);
     // Update the User's tunedStationID here
 
     return res.json({ message: "Tuned in successfully", station });
@@ -287,41 +335,45 @@ router.post("/changeTunedFreq", async (req, res) => {
 router.post("/chatMessage", async (req, res) => {
   const { content } = req.body;
   usr = await User.findByPk(req.session.userId);
-  RadioStationID = usr.tunedStationID;
-  const newMessage = await Message.create({
-    senderID: req.session.userId,
-    messageContent: content,
-    timestamp: new Date(),
-    radioStationID,
-  });
-  return res.json({
-    message: "Message sent successfully",
-    message: newMessage,
-  });
+  if (usr && usr.tunedStationID) {
+    radioStationID = usr.tunedStationID;
+
+    const newMessage = await Message.create({
+      senderID: req.session.userId,
+      messageContent: content,
+      timestamp: new Date(),
+      radioStationID: radioStationID,
+      senderUsername: usr.username,
+    });
+
+    return res.json({
+      message: "Message sent successfully",
+      message: newMessage,
+    });
+  }
 });
 
 router.get("/chatMessages", async (req, res) => {
   try {
-    let m = sequelize.models.User;
-    const user = await m.findByPk(req.session.userId);
+    const user = await User.findByPk(req.session.userId);
 
     if (!user || !user.tunedStationID) {
       return res
         .status(404)
         .json({ error: "User is not tuned to any radio station." });
+    } else {
+      const radioStationID = user.tunedStationID;
+
+      const chatMessages = await Message.findAll({
+        where: {
+          radioStationID: user.tunedStationID,
+        },
+        order: [["timestamp", "DESC"]],
+        limit: 100,
+      });
+
+      return res.json({ chatMessages });
     }
-
-    const radioStationID = user.tunedStationID;
-
-    const chatMessages = await Message.findAll({
-      where: {
-        radioStationID: Message.radioStationID,
-      },
-      order: [["timestamp", "DESC"]],
-      limit: 100,
-    });
-
-    return res.json({ chatMessages });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

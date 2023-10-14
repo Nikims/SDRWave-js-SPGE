@@ -4,6 +4,10 @@ const vStation = sequelize.define(
   "vStation",
   {
     // Model attributes for the Radio Station
+    isSDR: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     currentListeners: {
       type: DataTypes.INTEGER,
       defaultValue: 0,

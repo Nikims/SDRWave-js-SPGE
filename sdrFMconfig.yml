@@ -1,0 +1,21 @@
+#
+# Sample 'native' driver configuration file.
+#
+---
+port: 8080
+# Uncomment to require auth to change the frequency.
+# auth:
+#   type: basic
+#   # This indicates whether 'readonly' (GET) requests require auth or not.
+#   ignore_on_read: true
+#   # Each user is denoted by: <user>: <password>
+#   users:
+#     admin: admin
+
+# Starting (FM) channel/frequency to listen on startup.
+default_frequency: 101.7M
+# Driver settings.
+driver:
+  # Path to rtl_fm, if not on the path of the server.
+  # Optional.
+  kb_buffer_size: 128

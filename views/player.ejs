@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RTL-SDR FM Radio with FFT Visualizer</title>
+    <style>
+         html{
+      overflow: hidden;
+      }
+      #fftCanvas{
+        border-width: 4px;
+        box-shadow: 0px 1px 10px black;
+      }
+      #vizPlayerCont>audio{
+        transition: 0.3s;
+        max-block-size: 30px;
+        align-self: flex-end;
+      }
+    </style>
+  </head>
+  <body >
+    <div id="vizPlayerCont">
+    <audio controls crossorigin="anonymous" autoplay id="audioElement">
+      <source src="/api/radio/audio.ogg" type="audio/ogg" />
+      Your browser does not support the audio tag.
+    </audio>
+    <canvas id="fftCanvas" width="800" height="200"></canvas>
+  </div>
+    <script>
+      // Get the audio element and create an audio context
+      lol = document.addEventListener("click", () => {
+        const audioElement = document.getElementById("audioElement");
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+        // Create an analyser node for the audio context
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512; // Adjust the FFT size as needed
+
+        // Connect the audio element to the analyser
+        const source = audioContext.createMediaElementSource(audioElement);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+
+        // Create a canvas for visualization
+        const canvas = document.getElementById("fftCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Function to draw the FFT visualization
+        function drawFFT() {
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          analyser.getByteFrequencyData(dataArray);
+
+          // Clear the canvas
+
+          ctx.globalCompositeOperation = "copy";
+          ctx.drawImage(ctx.canvas, 0, -1);
+          // reset back to normal for subsequent operations.
+          ctx.globalCompositeOperation = "source-over";
+
+          ctx.globalAlpha = 1;
+
+          // Draw the FFT data as a bar graph
+          const barWidth = Math.round((canvas.width / bufferLength) * 2.5);
+          let barHeight;
+          let x = 0;
+
+          dataArray.forEach((value) => {
+            barHeight = value;
+            ctx.fillStyle = `hsl(${-barHeight * 2}, 100%, 50%)`;
+            ctx.fillRect(
+              x,
+              canvas.height - barHeight / 2 + 30,
+              barWidth,
+              barHeight / 2,
+            );
+
+            ctx.strokeRect(
+              x,
+              canvas.height - barHeight / 2 + 30,
+              barWidth,
+              barHeight / 2,
+            );
+            x += barWidth;
+          });
+
+          // Request the next frame
+          ctx.globalAlpha = 0.99;
+          //   ctx.fillStyle="white"
+          //   ctx.fillRect(0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(drawFFT);
+        }
+
+        // Start playing the audio and visualizing the FFT
+        // audioElement.play();
+        drawFFT();
+        lol = null;
+      });
+    </script>
+    <div>
+      <h2>Tuner</h2>
+      <div>Current frequency: <span id="tuner-element"></span></div>
+       
+        <form method="POST" action='<%= host?host:"" %>/api/frequency'>
+          <label for="tupo"><%= host%>:</label>
+
+          <label for="change-freq">New Frequency:</label>
+          <input type="text" id="change-freq" name="frequency">
+          <input type="submit" value="Change Frequency">
+        </form>
+
+      <script type="text/javascript">
+        async function updateTuner() {
+          let data = {};
+          try {
+            res = await fetch("/api/frequency", {
+              method: "GET",
+            });
+            data = await res.json();
+          } catch (e) {
+            console.error(e);
+            return;
+          }
+          const elem = document.getElementById("tuner-element");
+          elem.innerHTML = data.frequency;
+        }
+        updateTuner();
+      </script>
+    </div>
+    <iframe style="border-style: none; height: 100%;" src="/chat"></iframe>
+    <!-- <div>
+      <h2>Log</h2>
+      <button id="log-refresh" onclick="updateLog();">Refresh</button>
+      <div id="log-element" style="white-space: pre-wrap"></div>
+      <script type="text/javascript">
+        async function updateLog() {
+          let data = {};
+          try {
+            res = await fetch("/api/procinfo", {
+              method: "GET",
+            });
+            data = await res.text();
+          } catch (e) {
+            console.error(e);
+            return;
+          }
+          const elem = document.getElementById("log-element");
+          elem.innerHTML = data.replace("\n", "<br />");
+        }
+        updateLog();
+      </script> -->
+    </div>
+  </body>
+</html>

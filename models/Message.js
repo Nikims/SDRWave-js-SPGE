@@ -4,6 +4,11 @@ const DataTypes = require("sequelize/lib/data-types");
 const Message = sequelize.define(
   "Message",
   {
+    senderUsername: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: "John Doe",
+    },
     messageID: {
       type: DataTypes.UUID,
       allowNull: false,

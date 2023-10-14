@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SDRwave</title>
     <style>
+      html{
+        overflow: hidden;
+      }
       body {
-        overflow-y: hidden;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -31,17 +33,18 @@
         text-transform: none;
         height: 100vh;
       }
-      #sidebar-cnt > ul > li {
+      #sidebar-cnt > ul > li, a {
+        display: block;
+        text-decoration: none;
         list-style-type: none;
         margin-bottom: 30px;
         padding-right: 10px;
         border-right: 2px solid rgb(179, 179, 179);
-        max-width: 90%;
         transition: background 0.5s;
         overflow-wrap: break-word;
         overflow-clip-margin: 10px;
       }
-      #sidebar-cnt > ul > li:hover {
+      #sidebar-cnt > ul > li:hover,a:hover {
         background-color: rgb(77, 77, 77);
         cursor: grab;
       }
@@ -53,14 +56,54 @@
         position: sticky;
         top: 0px;
         width: 100wh;
-        background-color: rgb(48, 48, 48);
+        margin-bottom: 6px;
+        background-color: rgb(30,30,30);
+    border-style: solid;
+    border-color: rgb(200,198,200);
+    border-width: 1px;
       }
+      #player {
+        border-style: solid;
+        border-width: 0px 0px 3px 0px;
+        position: relative;
+    left: 140px;
+    width: 110%;
+    margin-right: 0px;
+    overflow: hidden;
+    left: 0px;
+    height: 60px;
+}
+#Acnt-cnt {
+ width: 40%;
+}
+#Acnt-cnt>#player {
+  height: 70px;
+  transition: 0.3s;
+}
+#Acnt-cnt:hover>#player {
+  transition: 0.3s;
+  border-style: solid;
+  border-width: 2px;
+  border-color: rgb(78, 78, 78)
+
+}
+      
     </style>
+    <script>
+
+
+
+
+       logout =()=> fetch('/logout', {
+      method: 'POST'})
+    </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
     <div id="header-cnt">
       <img src="/OIG.png" style="max-width: 100px" />
       <h1>SDRWave</h1>
+      <h1 style="margin-left:auto" id="greet">Enjoy the show, <%- username %>  </h1>
+ 
     </div>
     <div
       id="sideAndCnt-cnt"
@@ -73,8 +116,9 @@
           <li>List of stations</li>
           <li>Top vibes</li>
           <li>Settings</li>
-          <li></li>
-          <li></li>
+          <li onclick="logout()">Log out</li>
+          <a href="/login"> Log in</a>
+
           <li></li>
           <li></li>
           <li></li>
@@ -83,9 +127,33 @@
           <li></li>
         </ul>
       </div>
-      <iframe width="100%" src="/stationsPage"></iframe>
+      <iframe width="50%" src="/stationsPage"></iframe>
 
-      <div id="Acnt-cnt"></div>
+      <div id="Acnt-cnt">
+        <iframe id="player" width="100%" src="/player"></iframe>
+
+      </div>
     </div>
   </body>
+  <script>
+    let AccntCont= document.querySelector("#Acnt-cnt")
+   let playerel=document.querySelector("#player")
+   let cancelableTimeout;
+    AccntCont.addEventListener('mouseleave', () => {
+  console.log("ok")
+  cancelableTimeout=setTimeout(() => {
+            playerel.style.height="70px"
+            playerel.style.background =  `rgb(48, 48, 48)`;
+
+        }, 5000);
+    });
+
+AccntCont.addEventListener('mouseenter', () => {
+  console.log("unok")
+            clearTimeout(cancelableTimeout)
+            playerel.style.height="800px"
+            playerel.style.background =  `rgb(77, 77, 77)`
+
+    });
+  </script>
 </html>
