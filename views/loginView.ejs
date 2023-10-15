@@ -128,10 +128,12 @@
         const usernameOrEmail =
           document.getElementById("usernameOrEmail").value;
         const password = document.getElementById("password").value;
+        const repeatPassword = document.getElementById("repeatPassword").value;
 
         const data = {
           username: usernameOrEmail,
           password: password,
+          repeatPassword:repeatPassword
         };
 
         fetch(`/${btn.id.slice(0, -3)}`, {
