@@ -21,7 +21,8 @@
       }
 
       .login-form {
-        border-radius: 40px;
+        padding: 10px;
+        border-radius: 15px;
         font-family: Arial, Helvetica, sans-serif;
         position: relative;
         z-index: 4;
@@ -52,9 +53,13 @@
       .label {
         text-decoration: underline;
         font-weight: 700;
+        padding: 3px;
         font-size: large;
         font-family: Arial, Helvetica, sans-serif;
         color: aliceblue;
+      }
+      #redirect{
+        color: rgb(158, 157, 255);
       }
     </style>
     <title>Login Page</title>
@@ -63,40 +68,59 @@
   <body>
     <div id="cred-container">
       <form class="login-form">
-        <br style="height: 40px" />
-        <label class="label" for="usernameOrEmail">Username/Email:</label><br />
+        <label class="label" for="usernameOrEmail">Username/Email:</label>
         <input
           class="input-field"
           type="text"
           id="usernameOrEmail"
           name="usernameOrEmail"
-        /><br /><br />
-        <label class="label" for="password">Password:</label><br />
+        />
+        <label class="label" for="password">Password:</label>
         <input
           class="input-field"
           type="password"
           id="password"
           name="password"
-        /><br /><br />
+        />
+        <% if(newUser){%>
+        <label class="label" for="password">Repeat password:</label>
+        <input
+          class="input-field"
+          type="password"
+          id="repeatPassword"
+          name="repeatPassword"
+        />
+        <%  }%> 
         <div
           style="
             display: flex;
             flex-direction: row; /* justify-items: right; */
-            margin-inline-start: 28%;
+            justify-content: center;
           "
         >
+        <% if(!newUser){%>
           <button id="signinBtn" class="auth-button" type="submit">
             Login
+          
           </button>
+          <% }else{%>
           <button id="signupBtn" class="auth-button" type="submit">
             Sign up
           </button>
+          <% } %> 
         </div>
         <span id="response-msg"></span>
       </form>
+      <h1>Wanna <span id="redirect"><%- newUser?"/login":"/register"%></span> instead?</h1>
+
     </div>
+
   </body>
   <script>
+    document.querySelector("#redirect").addEventListener("click",()=>{
+      console.log("ok")
+      window.location.href= <%-newUser%>?"/login":"/register"
+    })
     document.querySelectorAll(".auth-button").forEach((btn) => {
       btn.addEventListener("click", async (event) => {
         event.preventDefault(); // Prevent form submission

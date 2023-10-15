@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="height: 100%">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,13 +7,40 @@
     <style>
       body {
         overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
       }
       #chatbox {
         height: fit-content;
+        max-height: 100px;
         overflow-y: scroll;
         border: 1px solid #ccc;
         padding: 10px;
-        max-height: 40%;
+      }
+      input {
+        width: 100%;
+        padding: 6px 12px;
+        background: rgb(31, 32, 35);
+        border: 1px solid rgb(60, 63, 68);
+        border-radius: 4px;
+        font-size: 13px;
+        color: rgb(247, 248, 248);
+        height: 46px;
+        appearance: none;
+        transition: border 0.15s ease 0s;
+        :focus {
+          outline: none;
+          box-shadow: none;
+          border-color: rgb(100, 153, 255);
+        }
+      }
+      #messageinput-cnt {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        max-height: max-content;
+        height: 20%;
       }
     </style>
   </head>
@@ -21,17 +48,29 @@
     <div id="chatbox">
       <!-- Messages will be displayed here -->
     </div>
-    <div>
-      <input
-        type="text"
-        id="messageInput"
-        placeholder="Type your message here"
-      />
-      <button onclick="sendMessage()">Send</button>
+    <div id="messageinput-cnt">
+      <button onclick="sendMessage()" hidden></button>
+      <div>
+        <input
+          autocomplete="off"
+          type="text"
+          id="messageInput"
+          placeholder="Type your message here"
+        />
+      </div>
     </div>
-
     <script>
       // Function to load previous messages
+      const messageInput = document.getElementById("messageInput");
+      messageInput.addEventListener("keypress", function (event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+          // Cancel the default action, if needed
+          event.preventDefault();
+          // Trigger the button element with a click
+          sendMessage();
+        }
+      });
       function loadMessages() {
         fetch("/chatMessages")
           .then((response) => response.json())
@@ -50,7 +89,6 @@
 
       // Function to send a message
       function sendMessage() {
-        const messageInput = document.getElementById("messageInput");
         const content = messageInput.value;
         fetch("/chatMessage", {
           method: "POST",
@@ -63,7 +101,9 @@
           .then((data) => {
             console.log(data);
             loadMessages(); // Reload messages after sending a new message
+            messageInput.value = "";
           })
+
           .catch((error) => console.error("Error:", error));
       }
 

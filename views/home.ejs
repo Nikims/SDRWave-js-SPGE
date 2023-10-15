@@ -18,8 +18,8 @@
         max-width: 20%;
         min-width: 10%;
         display: flex;
+        justify-content: flex-start;
         flex-direction: column;
-        justify-content: space-evenly;
         background-color: rgb(48, 48, 48);
         color: rgb(161, 161, 161);
         font-family: "Trebuchet MS", Helvetica, sans-serif;
@@ -75,6 +75,7 @@
 }
 #Acnt-cnt {
  width: 40%;
+ height: revert;
 }
 #Acnt-cnt>#player {
   height: 70px;
@@ -112,13 +113,16 @@
       <div id="sidebar-cnt">
         <div id="Curr"></div>
         <ul>
+          <% if(username=="Guest") {%> 
+
+            <a style="font-weight: 600;" href="/login"> Log in</a>
+         <% } %> 
           <li>Host a Vstation</li>
           <li>List of stations</li>
           <li>Top vibes</li>
           <li>Settings</li>
           <li onclick="logout()">Log out</li>
-          <a href="/login"> Log in</a>
-
+        
           <li></li>
           <li></li>
           <li></li>
@@ -145,13 +149,13 @@
             playerel.style.height="70px"
             playerel.style.background =  `rgb(48, 48, 48)`;
 
-        }, 5000);
+        }, 30000);
     });
 
 AccntCont.addEventListener('mouseenter', () => {
   console.log("unok")
             clearTimeout(cancelableTimeout)
-            playerel.style.height="800px"
+            playerel.style.height="100%"
             playerel.style.background =  `rgb(77, 77, 77)`
 
     });

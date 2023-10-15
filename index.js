@@ -148,8 +148,16 @@ router.use(async (req, res, next) => {
 
 router.post("/signup", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, repeatPassword } = req.body;
+    console.log(req.body)
+    if(password.length<5){
+      return res.status(400).json({ error: `We don't collect sensitive data, but still, ${password.length} characters?` });
 
+    }
+    if(password!=repeatPassword){
+      return res.status(400).json({ error: "Passwords must match :P" });
+
+    }
     if (!username || !password) {
       return res.status(400).json({ error: "All fields are required." });
     }
@@ -240,7 +248,10 @@ router.post("/logout", (req, res) => {
   res.redirect(303, "/");
 });
 router.get("/login", (req, res) => {
-  res.sendFile(__dirname + "/views/loginView.html");
+  res.render("loginView", { newUser: 0 });
+});
+router.get("/register", (req, res) => {
+  res.render("loginView", { newUser: 1 });
 });
 router.get("/player", async (req, res) => {
   let user = await User.findByPk(req.session.userId);
@@ -331,7 +342,13 @@ router.post("/changeTunedFreq", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
+// router.patch("/changeSetting",async (req, res) => {
+//   const { name, value } = req.body;
+//   usr = await User.findByPk(req.session.userId);
+//   if (usr) {
+//     req.session.settings.name=value
+//   }
+// });
 router.post("/chatMessage", async (req, res) => {
   const { content } = req.body;
   usr = await User.findByPk(req.session.userId);

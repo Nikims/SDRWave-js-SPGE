@@ -1,30 +1,78 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style='height:100%;'>
   <head>
     <meta charset="utf-8" />
     <title>RTL-SDR FM Radio with FFT Visualizer</title>
     <style>
-         html{
-      overflow: hidden;
-      }
-      #fftCanvas{
+      html{
+        overflow: hidden;
+    }
+    #fftCanvas{
         border-width: 4px;
         box-shadow: 0px 1px 10px black;
-      }
-      #vizPlayerCont>audio{
+        max-width: 93;
+    }
+    #vizPlayerCont>audio{
         transition: 0.3s;
         max-block-size: 30px;
         align-self: flex-end;
-      }
+    }
+    .switch {
+        position: relative;
+        display: flex;
+        width: 60px;
+        height: 34px;
+    }
+    .switch > input{
+        display: none;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        border-radius: 34px;
+        transition: .4s;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        border-radius: 50%;
+        transition: .4s;
+    }
+    #checkbox{
+      display: none;
+    }
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    .slider.round {
+        border-radius: 34px;
+    }
+    .slider.round:before {
+        border-radius: 50%;
+    }
+    
     </style>
   </head>
-  <body >
+  <body style="height: 100%;" >
     <div id="vizPlayerCont">
     <audio controls crossorigin="anonymous" autoplay id="audioElement">
       <source src="/api/radio/audio.ogg" type="audio/ogg" />
       Your browser does not support the audio tag.
     </audio>
-    <canvas id="fftCanvas" width="800" height="200"></canvas>
   </div>
     <script>
       // Get the audio element and create an audio context
@@ -35,7 +83,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 512; // Adjust the FFT size as needed
+        analyser.fftSize = 1024; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -45,6 +93,8 @@
         // Create a canvas for visualization
         const canvas = document.getElementById("fftCanvas");
         const ctx = canvas.getContext("2d");
+        let hueOffset=0
+        let funny=5
 
         // Function to draw the FFT visualization
         function drawFFT() {
@@ -55,40 +105,63 @@
           // Clear the canvas
 
           ctx.globalCompositeOperation = "copy";
-          ctx.drawImage(ctx.canvas, 0, -1);
+          ctx.drawImage(ctx.canvas, 0.5, -0.5);
           // reset back to normal for subsequent operations.
           ctx.globalCompositeOperation = "source-over";
 
           ctx.globalAlpha = 1;
-
+        
+         
           // Draw the FFT data as a bar graph
           const barWidth = Math.round((canvas.width / bufferLength) * 2.5);
           let barHeight;
           let x = 0;
-
+          cnt=0
           dataArray.forEach((value) => {
+            
+            
             barHeight = value;
-            ctx.fillStyle = `hsl(${-barHeight * 2}, 100%, 50%)`;
+           
+            x += barWidth;
+            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, 100%, 50%)`;
             ctx.fillRect(
               x,
               canvas.height - barHeight / 2 + 30,
               barWidth,
+             3,
+            );
+       
+            if(cnt%funny==0){
+              ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
+            ctx.fillRect(
+              x,
+              canvas.height - barHeight / 2 + 45,
+              barWidth*funny,
               barHeight / 2,
             );
-
+            
             ctx.strokeRect(
               x,
-              canvas.height - barHeight / 2 + 30,
-              barWidth,
+              canvas.height - barHeight / 2 + 45,
+              barWidth*funny,
               barHeight / 2,
             );
-            x += barWidth;
+            }
+            //  ctx.fillRect(
+            //   x,
+            //   canvas.height -  ((barHeight / 2) + 30),
+            //   barWidth,
+            //   10,
+            // );
+         cnt++
           });
 
           // Request the next frame
           ctx.globalAlpha = 0.99;
           //   ctx.fillStyle="white"
           //   ctx.fillRect(0, 0, canvas.width, canvas.height);
+          hueOffset+=4
+
           requestAnimationFrame(drawFFT);
         }
 
@@ -97,19 +170,24 @@
         drawFFT();
         lol = null;
       });
+      document.getElementById('name')
+    .addEventListener('keyup', async function(event) {
+        if (event.code === 'Enter')
+        {
+          
+            event.preventDefault();
+            const form = document.getElementById('changefreqform');
+            // await fetch(<%= host?host:"" %>/api/frequency,{method:"POST",  body: formData})
+            
+          form.submit();
+        }
+    });
     </script>
     <div>
       <h2>Tuner</h2>
       <div>Current frequency: <span id="tuner-element"></span></div>
        
-        <form method="POST" action='<%= host?host:"" %>/api/frequency'>
-          <label for="tupo"><%= host%>:</label>
-
-          <label for="change-freq">New Frequency:</label>
-          <input type="text" id="change-freq" name="frequency">
-          <input type="submit" value="Change Frequency">
-        </form>
-
+   
       <script type="text/javascript">
         async function updateTuner() {
           let data = {};
@@ -128,7 +206,21 @@
         updateTuner();
       </script>
     </div>
-    <iframe style="border-style: none; height: 100%;" src="/chat"></iframe>
+    <label  class="switch"><span style="position: fixed;margin-left: 15%;">Persist audio player?</span>
+      <input type="checkbox" onclick=`
+        window.parent.
+      ` id="toggle">
+
+      <span style='' class="slider round"></span>
+    </label>
+    <canvas id="fftCanvas" width="800" height="200"></canvas>
+    <form method="POST" id="changefreqform" action='<%= host?host:"" %>/api/frequency'>
+      <label for="tupo"><%= host%>:</label>
+      <input type="text" id="change-freq" name="frequency">
+    </form>
+
+    <iframe style="border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
+
     <!-- <div>
       <h2>Log</h2>
       <button id="log-refresh" onclick="updateLog();">Refresh</button>
