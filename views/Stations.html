@@ -60,14 +60,30 @@
       });
   </script>
   <style>
-    body::-webkit-scrollbar {
+    @keyframes marquee
+    {
+      0%
+      {
+        left: 100%;
+      }
+
+      to
+      {
+        left: -100%;
+      }
+    }
+
+    body::-webkit-scrollbar
+    {
       width: 1px;
       height: 15px;
     }
-    #radios-container {
+
+    #radios-container
+    {
       display: flex;
       position: absolute;
-      background-color: rgb(78, 78, 78);
+      background-color: #4e4e4e;
       flex-direction: column;
       justify-content: center;
       align-content: center;
@@ -76,70 +92,71 @@
       height: min-content;
       z-index: 3;
     }
-    .radio-box {
+
+    .radio-box,.radio-name-cnt
+    {
+      font-family: Arial,Helvetica,sans-serif;
+    }
+
+    .radio-box
+    {
       padding: 6px;
       border-radius: 6px;
-      font-family: Arial, Helvetica, sans-serif;
       position: relative;
       z-index: 4;
-      color: aquamarine;
       text-align: end;
-      background-color: rgb(39, 39, 39);
-      line-height: 200%;
+      background-color: #272727;
       margin-bottom: 14px;
       display: flex;
       flex-direction: row;
       width: 100%;
-      height: 60px;
       overflow: hidden;
-      transition: 0.3s;
+      transition: .3s;
       left: 15%;
       border-style: double;
       justify-content: left;
+      box-shadow: 0 1px 10px #000;
+      color: #7fffd4;
+      line-height: 200%;
+      height: 60px;
       max-width: 400px;
-      box-shadow: 0px 1px 10px black;
     }
-    .radio-name-cnt {
+
+    .radio-name-cnt
+    {
       font-weight: 700;
       font-size: large;
-      font-family: Arial, Helvetica, sans-serif;
-      color: black;
+      color: #000;
       max-height: min-content;
       line-height: 100%;
       height: fit-content;
       min-width: 40%;
       max-width: 40%;
-      background: springgreen;
+      background: #00ff7f;
     }
-    .radio-box > p {
+
+    .radio-box>p
+    {
       z-index: 1;
       margin-top: 10%;
       display: inline;
       position: absolute;
       animation: marquee 10s linear infinite;
-      transition:
-        animation-duration 0.5s,
-        height 0.5s; /* Adding transition for smooth effect */
+      transition: animation-duration .5s,height .5s;
       min-width: max-content;
     }
 
-    .radio-box:hover {
-      animation-duration: 5; /* Slower animation on hover */
-      transition: 0.3s;
-      padding: 4%; /* Bigger height on hover */
-    }
-    .locked {
-      opacity: 20%;
-      background-color: red;
+    .radio-box:hover
+    {
+      animation-duration: 5;
+      transition: .3s;
+      padding: 4%;
     }
 
-    @keyframes marquee {
-      0% {
-        left: 100%;
-      }
-      100% {
-        left: -100%;
-      }
+    .locked
+    {
+      opacity: 20%;
+      background-color: red;
     }
   </style>
 </html>

@@ -4,67 +4,85 @@
     <meta charset="utf-8" />
     <title>RTL-SDR FM Radio with FFT Visualizer</title>
     <style>
-      html{
+      html
+      {
         overflow: hidden;
-    }
-    #fftCanvas{
+      }
+
+      #fftCanvas
+      {
         border-width: 4px;
-        box-shadow: 0px 1px 10px black;
+        box-shadow: 0 1px 10px #000;
         max-width: 93;
-    }
-    #vizPlayerCont>audio{
-        transition: 0.3s;
+      }
+
+      #vizPlayerCont>audio
+      {
+        transition: .3s;
         max-block-size: 30px;
         align-self: flex-end;
-    }
-    .switch {
+      }
+
+      .switch
+      {
         position: relative;
         display: flex;
         width: 60px;
         height: 34px;
-    }
-    .switch > input{
+      }
+
+      #checkbox,.switch>input
+      {
         display: none;
-    }
-    
-    .slider {
+      }
+
+      .slider,.slider:before
+      {
         position: absolute;
+        transition: .4s;
+      }
+
+      .slider
+      {
         cursor: pointer;
         top: 0;
-        left: 0;
         right: 0;
+        left: 0;
         bottom: 0;
         background-color: #ccc;
         border-radius: 34px;
-        transition: .4s;
-    }
-    .slider:before {
-        position: absolute;
+      }
+
+      .slider:before
+      {
         content: "";
         height: 26px;
         width: 26px;
         left: 4px;
         bottom: 4px;
-        background-color: white;
+        background-color: #fff;
         border-radius: 50%;
-        transition: .4s;
-    }
-    #checkbox{
-      display: none;
-    }
-    input:checked + .slider {
-        background-color: #2196F3;
-    }
-    input:checked + .slider:before {
+      }
+
+      input:checked+.slider
+      {
+        background-color: #2196f3;
+      }
+
+      input:checked+.slider:before
+      {
         transform: translateX(26px);
-    }
-    .slider.round {
+      }
+
+      .slider.round
+      {
         border-radius: 34px;
-    }
-    .slider.round:before {
+      }
+
+      .slider.round:before
+      {
         border-radius: 50%;
-    }
-    
+      }
     </style>
   </head>
   <body style="height: 100%;" >

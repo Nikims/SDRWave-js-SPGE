@@ -5,27 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SDRwave</title>
     <style>
-      html{
+      html
+      {
         overflow: hidden;
       }
-      body {
-        height: 100%;
+
+      #sidebar-cnt,body
+      {
         display: flex;
         flex-direction: column;
       }
-      #sidebar-cnt {
+
+      body
+      {
+        height: 100%;
+      }
+
+      #sidebar-cnt
+      {
         position: static;
         max-width: 20%;
         min-width: 10%;
-        display: flex;
         justify-content: flex-start;
-        flex-direction: column;
-        background-color: rgb(48, 48, 48);
-        color: rgb(161, 161, 161);
-        font-family: "Trebuchet MS", Helvetica, sans-serif;
+        background-color: #303030;
+        color: #a1a1a1;
+        font-family: "Trebuchet MS",Helvetica,sans-serif;
         font-size: 24px;
         letter-spacing: -1.4px;
-        word-spacing: 0.4px;
+        word-spacing: .4px;
         font-weight: 700;
         text-decoration: none;
         font-style: normal;
@@ -33,62 +40,73 @@
         text-transform: none;
         height: 100vh;
       }
-      #sidebar-cnt > ul > li, a {
+
+      #sidebar-cnt>ul>li,a
+      {
         display: block;
         text-decoration: none;
         list-style-type: none;
         margin-bottom: 30px;
         padding-right: 10px;
-        border-right: 2px solid rgb(179, 179, 179);
-        transition: background 0.5s;
+        border-right: 2px solid #b3b3b3;
+        transition: background .5s;
         overflow-wrap: break-word;
         overflow-clip-margin: 10px;
       }
-      #sidebar-cnt > ul > li:hover,a:hover {
-        background-color: rgb(77, 77, 77);
+
+      #sidebar-cnt>ul>li:hover,a:hover
+      {
+        background-color: #4d4d4d;
         cursor: grab;
       }
-      #header-cnt {
+
+      #header-cnt
+      {
         display: flex;
         flex-direction: row;
         color: bisque;
         padding: 10px;
         position: sticky;
-        top: 0px;
+        top: 0;
         width: 100wh;
         margin-bottom: 6px;
-        background-color: rgb(30,30,30);
-    border-style: solid;
-    border-color: rgb(200,198,200);
-    border-width: 1px;
-      }
-      #player {
+        background-color: #1e1e1e;
         border-style: solid;
-        border-width: 0px 0px 3px 0px;
-        position: relative;
-    left: 140px;
-    width: 110%;
-    margin-right: 0px;
-    overflow: hidden;
-    left: 0px;
-    height: 60px;
-}
-#Acnt-cnt {
- width: 40%;
- height: revert;
-}
-#Acnt-cnt>#player {
-  height: 70px;
-  transition: 0.3s;
-}
-#Acnt-cnt:hover>#player {
-  transition: 0.3s;
-  border-style: solid;
-  border-width: 2px;
-  border-color: rgb(78, 78, 78)
+        border-color: #c8c6c8;
+        border-width: 1px;
+      }
 
-}
-      
+      #player
+      {
+        border-style: solid;
+        border-width: 0 0 3px;
+        position: relative;
+        width: 110%;
+        margin-right: 0;
+        overflow: hidden;
+        left: 0;
+        height: 60px;
+      }
+
+      #Acnt-cnt
+      {
+        width: 40%;
+        height: revert;
+      }
+
+      #Acnt-cnt>#player
+      {
+        height: 70px;
+        transition: .3s;
+      }
+
+      #Acnt-cnt:hover>#player
+      {
+        transition: .3s;
+        border-style: solid;
+        border-width: 2px;
+        border-color: #4e4e4e;
+      }   
     </style>
     <script>
 
