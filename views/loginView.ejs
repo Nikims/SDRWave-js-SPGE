@@ -128,8 +128,10 @@
         const usernameOrEmail =
           document.getElementById("usernameOrEmail").value;
         const password = document.getElementById("password").value;
-        const repeatPassword = document.getElementById("repeatPassword").value;
-
+        let repeatPassword=0
+         if(<%-newUser%>){
+          repeatPassword = document.getElementById("repeatPassword").value;
+}
         const data = {
           username: usernameOrEmail,
           password: password,

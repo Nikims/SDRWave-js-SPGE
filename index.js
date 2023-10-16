@@ -29,32 +29,32 @@ sequelize.authenticate().then(async function (errors) {
     topSongs: ["Song D", "Song E", "Song F"],
   });
 
-  //TEST DATA
-  await vStation.create({
-    StationName: "Radio Station A",
-    StationDescription: "Broadcasting top hits 24/7.",
-    currentListeners: 150,
-    isBusy: 1,
-    Songs: { song1: "Title A", song2: "Title B" },
-    topSongs: ["Song A", "Song B", "Song C"],
-  });
-  await vStation.create({
-    StationName: "Chill Beats FM",
-    StationDescription: "Relax and enjoy the smooth beats.",
-    currentListeners: 120,
-    isBusy: 1,
-    Songs: { song1: "Title E", song2: "Title F" },
-    topSongs: ["Song G", "Song H", "Song I"],
-  });
+  // //TEST DATA
+  // await vStation.create({
+  //   StationName: "Radio Station A",
+  //   StationDescription: "Broadcasting top hits 24/7.",
+  //   currentListeners: 150,
+  //   isBusy: 1,
+  //   Songs: { song1: "Title A", song2: "Title B" },
+  //   topSongs: ["Song A", "Song B", "Song C"],
+  // });
+  // await vStation.create({
+  //   StationName: "Chill Beats FM",
+  //   StationDescription: "Relax and enjoy the smooth beats.",
+  //   currentListeners: 120,
+  //   isBusy: 1,
+  //   Songs: { song1: "Title E", song2: "Title F" },
+  //   topSongs: ["Song G", "Song H", "Song I"],
+  // });
 
-  await vStation.create({
-    StationName: "Rock n Roll Radio",
-    StationDescription: "Bringing the best of rock music.",
-    currentListeners: 80,
-    isBusy: 0,
-    Songs: { song1: "Title C", song2: "Title D" },
-    topSongs: ["Song D", "Song E", "Song F"],
-  });
+  // await vStation.create({
+  //   StationName: "Rock n Roll Radio",
+  //   StationDescription: "Bringing the best of rock music.",
+  //   currentListeners: 80,
+  //   isBusy: 0,
+  //   Songs: { song1: "Title C", song2: "Title D" },
+  //   topSongs: ["Song D", "Song E", "Song F"],
+  // });
 
   // console.log(errors) });
 });
@@ -245,7 +245,8 @@ router.get("/", (r, res) => {
 });
 router.post("/logout", (req, res) => {
   req.session.destroy();
-  res.redirect(303, "/");
+
+  res.redirect(303, "/register");
 });
 router.get("/login", (req, res) => {
   res.render("loginView", { newUser: 0 });
