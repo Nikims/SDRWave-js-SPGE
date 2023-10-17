@@ -60,27 +60,22 @@
       });
   </script>
   <style>
-    @keyframes marquee
-    {
-      0%
-      {
+    @keyframes marquee {
+      0% {
         left: 100%;
       }
 
-      to
-      {
+      to {
         left: -100%;
       }
     }
 
-    body::-webkit-scrollbar
-    {
+    body::-webkit-scrollbar {
       width: 1px;
       height: 15px;
     }
 
-    #radios-container
-    {
+    #radios-container {
       display: flex;
       position: absolute;
       background-color: #4e4e4e;
@@ -93,13 +88,12 @@
       z-index: 3;
     }
 
-    .radio-box,.radio-name-cnt
-    {
-      font-family: Arial,Helvetica,sans-serif;
+    .radio-box,
+    .radio-name-cnt {
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .radio-box
-    {
+    .radio-box {
       padding: 6px;
       border-radius: 6px;
       position: relative;
@@ -111,7 +105,7 @@
       flex-direction: row;
       width: 100%;
       overflow: hidden;
-      transition: .3s;
+      transition: 0.3s;
       left: 15%;
       border-style: double;
       justify-content: left;
@@ -122,8 +116,7 @@
       max-width: 400px;
     }
 
-    .radio-name-cnt
-    {
+    .radio-name-cnt {
       font-weight: 700;
       font-size: large;
       color: #000;
@@ -135,26 +128,25 @@
       background: #00ff7f;
     }
 
-    .radio-box>p
-    {
+    .radio-box > p {
       z-index: 1;
       margin-top: 10%;
       display: inline;
       position: absolute;
       animation: marquee 10s linear infinite;
-      transition: animation-duration .5s,height .5s;
+      transition:
+        animation-duration 0.5s,
+        height 0.5s;
       min-width: max-content;
     }
 
-    .radio-box:hover
-    {
+    .radio-box:hover {
       animation-duration: 5;
-      transition: .3s;
+      transition: 0.3s;
       padding: 4%;
     }
 
-    .locked
-    {
+    .locked {
       opacity: 20%;
       background-color: red;
     }

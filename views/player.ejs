@@ -63,7 +63,29 @@
         background-color: #fff;
         border-radius: 50%;
       }
-
+      #songDiscoverBtn{
+        background: chartreuse;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    width: 30%;
+    height: 3%;
+    margin: 10px;
+    box-shadow: -5px 5px 1px green
+      }
+      #songDiscoverBtn:hover{
+        position: relative;
+        background: chartreuse;
+    color: black;
+    border: none;
+    right: 3px;
+    top: 3px;
+    border-radius: 4px;
+    width: 30%;
+    height: 3%;
+    margin: 10px;
+    box-shadow: -2px 2px 1px green
+      }
       input:checked+.slider
       {
         background-color: #2196f3;
@@ -188,8 +210,7 @@
         drawFFT();
         lol = null;
       });
-      document.getElementById('name')
-    .addEventListener('keyup', async function(event) {
+      document.getElementById('name').addEventListener('keyup', async function(event) {
         if (event.code === 'Enter')
         {
           
@@ -222,6 +243,7 @@
           elem.innerHTML = data.frequency;
         }
         updateTuner();
+
       </script>
     </div>
     <label  class="switch"><span style="position: fixed;margin-left: 15%;">Persist audio player?</span>
@@ -236,9 +258,27 @@
       <label for="tupo"><%= host%>:</label>
       <input type="text" id="change-freq" name="frequency">
     </form>
+    <p id="songName"></p>
+    <button id="songDiscoverBtn" onclick="
+   
+    passed=15
+    countDown=setInterval(()=>{
+      passed--
+      document.getElementById(`songName`).innerText=`Trying to recognize the song. This shouldnt take more than ${passed} seconds`
+
+    },1000)
+    fetch(`/discoverSong`)
+    .then((res) => {
+      return res.text(); // Or use res.json() if the response is JSON
+    })
+    .then((data) => {
+      data=JSON.parse(data)
+      clearInterval(countDown)
+      console.log(data.artist,data.title);
+      document.getElementById(`songName`).innerText=data.artist+':'+data.title
+    })">Discover song</button>
 
     <iframe style="border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
-
     <!-- <div>
       <h2>Log</h2>
       <button id="log-refresh" onclick="updateLog();">Refresh</button>

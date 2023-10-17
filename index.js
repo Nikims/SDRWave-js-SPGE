@@ -5,10 +5,17 @@ let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 const sequelize = require("./db/db");
-
+const { spawn ,exec} = require('node:child_process');
+const fs=require("fs")
+const axios = require('axios');
+const dotenv = require("dotenv");
+dotenv.config();
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
 
+const { Audd } = require('audd.io');
+const audd = new Audd(process.env.APISHAZAM);  
+console.log(audd,process.env.APISHAZAM)
 sequelize.authenticate().then(async function (errors) {
   User = sequelize.models.User;
   vStation = sequelize.models.vStation;
@@ -62,10 +69,10 @@ const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
 app.use(express.static(__dirname + "/public"));
+app.use(express.static(__dirname + "/songs"));
 
 const session = require("express-session");
-const dotenv = require("dotenv");
-dotenv.config();
+
 const bodyParser = require("body-parser");
 const e = require("express");
 app.use(bodyParser.json());
@@ -145,18 +152,19 @@ router.use(async (req, res, next) => {
   }
   return next();
 });
-
 router.post("/signup", async (req, res) => {
   try {
     const { username, password, repeatPassword } = req.body;
-    console.log(req.body)
-    if(password.length<5){
-      return res.status(400).json({ error: `We don't collect sensitive data, but still, ${password.length} characters?` });
-
+    console.log(req.body);
+    if (password.length < 5) {
+      return res
+        .status(400)
+        .json({
+          error: `We don't collect sensitive data, but still, ${password.length} characters?`,
+        });
     }
-    if(password!=repeatPassword){
+    if (password != repeatPassword) {
       return res.status(400).json({ error: "Passwords must match :P" });
-
     }
     if (!username || !password) {
       return res.status(400).json({ error: "All fields are required." });
@@ -395,6 +403,91 @@ router.get("/chatMessages", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/discoverSong", async (req, res) => {
+  try {
+    usr = await User.findByPk(req.session.userId);
+    if (usr && usr.tunedStationID) {
+      radio = await RadioStation.findByPk(usr.tunedStationID);
+
+      if (radio) {
+        rnd = Math.round(Math.random() * 1000000);
+
+        const childProcess = spawn("mkdir", [`./songs/${rnd}`]);
+
+        // Listen for the 'exit' event of the child process
+        childProcess.on("exit", async (code) => {
+          // Once the child process has finished, mark the station as not busy
+
+          command = `curl -m 10 ${radio.hostSource}/api/radio/audio.flac -o ./songs/${rnd}/audio.flac`;
+
+          exec(command, (error, stdout, stderr) => {
+            if (error) {
+              console.error(`Error: ${error.message}`);
+              return;
+            }
+            if (stderr) {
+              console.error(`stderr: ${stderr}`);
+              return;
+            }
+            console.log(`stdout: ${stdout}`);
+          });
+          // Listen for data from the child process
+          setTimeout(async ()=>{
+
+
+          
+    
+            commandtwo=`ffmpeg -i ./songs/${rnd}/audio.{flac,mp3}`
+
+
+            exec(commandtwo, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Error: ${error.message}`);
+                return;
+              }
+              if (stderr) {
+                console.error(`stderr: ${stderr}`);
+                return;
+              }
+              console.log(`stdout: ${stdout}`);
+            });
+
+
+            setTimeout(async ()=>{
+              var data = {
+                'api_token': process.env.APISHAZAM,
+                'file': fs.createReadStream(__dirname+`/songs/${rnd}/audio.mp3`),
+                'return': 'apple_music,spotify',
+            };
+            
+            axios({
+                method: 'post',
+                url: 'https://api.audd.io/',
+                data: data,
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then((response) => {
+                console.log(response.data.result);
+                res.send(response.data.result)
+            })
+            .catch((error) =>  {
+                console.log(error);
+            });
+          
+          // Listen for the 'exit' event of the child process
+          
+         
+        },1000)
+        },12000);
+      })
+      }
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500, e);
   }
 });
 
