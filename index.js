@@ -4,6 +4,8 @@ let RadioStation = require("./models/Radiostation");
 let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
+let Song = require("./models/Song");
+
 const sequelize = require("./db/db");
 const { spawn ,exec} = require('node:child_process');
 const fs=require("fs")
@@ -21,6 +23,8 @@ sequelize.authenticate().then(async function (errors) {
   vStation = sequelize.models.vStation;
   RadioStation = sequelize.models.RadioStation;
   Message = sequelize.models.Message;
+  Song = sequelize.models.Song;
+
 
   sequelize.sync({ force: false });
 
@@ -35,7 +39,25 @@ sequelize.authenticate().then(async function (errors) {
     tunableRangeMax: 105,
     topSongs: ["Song D", "Song E", "Song F"],
   });
-
+  (async () => {
+    await sequelize.sync();
+    try {
+      for (let i = 0; i < 10; i++) {
+        await Song.create({
+        
+          name: `Sample Song ${i + 1}`,
+          likes: [],
+          artist: `Sample Artist ${i + 1}`,
+          discoveredLiveCount: Math.floor(Math.random() * 10),
+          frequencyDiscoveredOn: Math.floor(Math.random() * 200),
+          RadioStationDiscoveredOn: '00000000-0000-0000-0000-000000000000', // Example UUID
+        });
+      }
+    } catch (error) {
+      console.error('Error creating sample songs:', error);
+    }
+  })();
+  Song.sync()
   // //TEST DATA
   // await vStation.create({
   //   StationName: "Radio Station A",
@@ -76,6 +98,9 @@ const session = require("express-session");
 const bodyParser = require("body-parser");
 const e = require("express");
 app.use(bodyParser.json());
+app.use(bodyParser.text());
+app.use(express.urlencoded({ extended: true })); 
+
 app.use(router);
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views"); // Assuming your EJS files are in the 'views' directory
@@ -244,6 +269,77 @@ router.get("/getRadioStations", async (req, res) => {
   }
   res.send(result);
 });
+router.post("/likeSong",async(req,res)=>{
+  const songToLike = await Song.findByPk(req.body)
+
+  if(songToLike){
+    if(req.session.userId){
+    songToLike.likes.push({user:req.session.userId})
+  res.send(200)}else{
+    res.send(400,"Must log in to commit this action.")
+    }
+  }
+})
+router.get("/topHits",async (req,res)=>{
+  res.render("topHits",{})
+})
+// router.get("/getSongs", async (req, res) => {
+  
+//   user = await User.findByPk(req.session.userId);
+//   try{
+//     usr
+//     console.log("usr found")
+//   result=await Song.findAll({where:{ RadioStationDiscoveredOn:usr.tunedStationID
+//   }})
+//   res.send(result)}catch{
+//     console.log("usr not foudn")
+//    result= await Song.findAll({})
+//    console.log(result)
+   
+//    res.send(result)
+//   }
+// });
+router.post("/getSongs", async (req, res) => {
+  console.log(req.body)
+  const { filterby, radiosource, reversefilterbtn } = req.body;
+  let orderBy;
+  if (filterby === 'date') {
+    orderBy = [['discoveryDate', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
+  } else if (filterby === 'name') {
+    orderBy = [['name', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
+  } else {
+    orderBy = [['likes', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
+  }
+
+  let whereClause = {};
+  if (radiosource === 'curr') {
+    whereClause = { RadioStationDiscoveredOn: user.tunedStationID };
+  }
+
+  try {
+    let result = await Song.findAll({ 
+      where: whereClause,
+      order: orderBy
+    });
+
+    // Sorting by likes length if filterby is 'likes'
+    if (filterby === 'likes') {
+      result.sort((a, b) => {
+        if (reversefilterbtn === '-1') {
+          return b.likes.length - a.likes.length;
+        } else {
+          return a.likes.length - b.likes.length;
+        }
+      });
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.send("An error occurred while fetching songs.");
+  }
+});
+
 
 // router.get("/", (req, res) => {
 //   res.sendFile(__dirname + "/ok.html");
@@ -469,9 +565,16 @@ router.get("/discoverSong", async (req, res) => {
                 data: data,
                 headers: { 'Content-Type': 'multipart/form-data' },
             })
-            .then((response) => {
+            .then(async(response) => {
                 console.log(response.data.result);
                 res.send(response.data.result)
+                const newSong = await Song.create({
+                  name:response.data.result.title,
+                  artist:response.data.result.artist,
+                  discoveredLiveCount: 0,
+                  frequencyDiscoveredOn: usr.tunedFrequency,
+                  RadioStationDiscoveredOn: usr.tunedStationID
+                });
             })
             .catch((error) =>  {
                 console.log(error);

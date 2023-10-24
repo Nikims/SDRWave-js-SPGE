@@ -7,7 +7,21 @@ const Song = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-
+    id:{
+      primaryKey:true,
+      type:DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull:false,
+    },
+    likes:{
+      type:DataTypes.JSON,
+      allowNull:false,
+      defaultValue:[],
+    },
+    artist:{
+      type:DataTypes.STRING,
+      allowNull:true,
+    },
     discoveredLiveCount: {
       type: DataTypes.INTEGER,
       defaultValue: 1,
@@ -22,4 +36,4 @@ const Song = sequelize.define(
   },
   {},
 );
-RadioStation.sync();
+Song.sync();

@@ -123,7 +123,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 1024; // Adjust the FFT size as needed
+        analyser.fftSize = 4096; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -246,13 +246,7 @@
 
       </script>
     </div>
-    <label  class="switch"><span style="position: fixed;margin-left: 15%;">Persist audio player?</span>
-      <input type="checkbox" onclick=`
-        window.parent.
-      ` id="toggle">
 
-      <span style='' class="slider round"></span>
-    </label>
     <canvas id="fftCanvas" width="800" height="200"></canvas>
     <form method="POST" id="changefreqform" action='<%= host?host:"" %>/api/frequency'>
       <label for="tupo"><%= host%>:</label>

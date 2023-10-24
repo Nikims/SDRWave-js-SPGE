@@ -112,9 +112,17 @@
 
 
 
+      renderTopHits=()=>{
+        document.querySelector("#stations").src="/topHits"
+      }
+      renderStations=()=>{
+        document.querySelector("#stations").src="/stationsPage"
 
-       logout =()=> fetch('/logout', {
+      }
+       logout =()=> {fetch('/logout', {
       method: 'POST'})
+      location.reload()
+    }
     </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
@@ -136,8 +144,8 @@
             <a style="font-weight: 600;" href="/login"> Log in</a>
          <% } %> 
           <li>Host a Vstation</li>
-          <li>List of stations</li>
-          <li>Top vibes</li>
+          <li onclick="renderStations()">List of stations</li>
+          <li onclick="renderTopHits()">Top Hits</li>
           <li>Settings</li>
           <li onclick="logout()">Log out</li>
         
@@ -149,7 +157,7 @@
           <li></li>
         </ul>
       </div>
-      <iframe width="50%" src="/stationsPage"></iframe>
+      <iframe id="stations" width="50%" src="/stationsPage"></iframe>
 
       <div id="Acnt-cnt">
         <iframe id="player" width="100%" src="/player"></iframe>
@@ -167,7 +175,7 @@
             playerel.style.height="70px"
             playerel.style.background =  `rgb(48, 48, 48)`;
 
-        }, 30000);
+        }, 3000);
     });
 
 AccntCont.addEventListener('mouseenter', () => {
