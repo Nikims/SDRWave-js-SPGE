@@ -6,6 +6,7 @@ let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 let Song = require("./models/Song");
 let Friendship = require("./models/Friendship");
+let Playlist = require("./models/Playlist");
 
 const DataTypes = require("sequelize/lib/data-types");
 const { Op } = require("sequelize");
@@ -15,6 +16,7 @@ const fs=require("fs")
 const axios = require('axios');
 const dotenv = require("dotenv");
 dotenv.config();
+const GoogleApiKey = process.env.APIGOOGLE;
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
 
@@ -121,6 +123,52 @@ router.use(
 const server = app.listen(3000, () => {
   console.log(`Server is running on port ${3000}`);
 });
+async function fetchYouTubePlaylist(playlistId) {
+  try {
+    const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=id&part=snippet&playlistId=${playlistId}&key=${GoogleApiKey}&maxResults=100`;
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data.items);
+    songs=[]
+    for(let i of data.items){
+
+      lol=await Song.create({
+        
+        name: i.snippet.title,
+        likes: [],
+        artist: i.snippet.videoOwnerChannelTitle,
+        discoveredLiveCount: 0,
+        frequencyDiscoveredOn: null,
+        RadioStationDiscoveredOn: null, // Example UUID
+        youtubeId:i.id
+      });
+      
+     songs.push(lol.id)
+    
+      Song.sync()
+    }
+ newone= Playlist.create({ownerId:user.id,songs:songs,name:"My playlist"})
+  Playlist.sync()
+  return newone.id
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+router.post("/addPlaylist",async (req,res)=>{
+  const user = await User.findByPk(req.session.userId);
+  if(user){
+    res.send(fetchYouTubePlaylist(req.body))
+    
+  }else{
+    res.send(403)
+  }
+})
 
 router.use("/api", async (req, res, next) => {
   try {
@@ -294,7 +342,7 @@ router.post("/likeSong",async(req,res)=>{
 })
 router.post("/unlikeSong", async (req, res) => {
   try {
-    const songToUnlike = await Song.findByPk(req.body.songId); // Assuming req.body.songId contains the ID of the song to unlike
+    const songToUnlike = await Song.findByPk((req.body)); // Assuming req.body.songId contains the ID of the song to unlike
 
     if (songToUnlike) {
       if (req.session.userId) {
@@ -318,12 +366,22 @@ router.post("/unlikeSong", async (req, res) => {
   }
 
 });
-
+router.get("/user",async (req,res)=>{
+user=  await User.findOne({where:{
+    username:req.query.username
+  }})
+  console.log(user+"\n\n\n\n\n")
+  res.render("profile",{user:user})
+})
 router.get("/topHits",async (req,res)=>{
-  res.render("topHits",{likedOnly:false})
+  user= await User.findOne({where:{id:req.session.userId}})
+
+  res.render("topHits",{likedOnly:false,user:user})
 })
 router.get("/likedSongs",async (req,res)=>{
-  res.render("topHits",{likedOnly:true})
+
+ user= await User.findOne({where:{id:req.session.userId}})
+  res.render("topHits",{likedOnly:true,user:user})
 })
 router.get("/getSongs", async (req, res) => {
   

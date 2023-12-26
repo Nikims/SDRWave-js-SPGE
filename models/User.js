@@ -22,6 +22,11 @@ const User = sequelize.define(
       unique: false,
       defaultValue: false,
     },
+    bio:{
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: false,
+    },
     tunedStationID: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -93,6 +93,13 @@
         width: 40%;
         height: revert;
       }
+      #myprofile:hover{
+        text-shadow: 0 0 20px #fff, 0 0 30px;
+        transition: 0.2s;
+      }
+      #myprofile{
+        transition: 0.2s;
+      }
 
       #Acnt-cnt>#player
       {
@@ -111,7 +118,10 @@
     <script>
 
 
-
+playlistImport=()=>{
+ id= prompt("Enter playlist ID","PL0Jks44vwre23hgZb_h8p2WgxzWAYqera")
+  fetch("/addPlaylist",{method:"POST",body:id})
+}
       renderTopHits=(param)=>{
         if(param.liked){
           document.querySelector("#stations").src="/likedSongs"
@@ -127,13 +137,16 @@
       method: 'POST'})
       location.reload()
     }
+    renderProfile=()=>{
+      document.querySelector("#stations").src=`/user?username=<%=username%>`
+    }
     </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
     <div id="header-cnt">
       <img src="/OIG.png" style="max-width: 100px" />
       <h1>SDRWave</h1>
-      <h1 style="margin-left:auto" id="greet">Enjoy the show, <%- username %>  </h1>
+      <h1 style="margin-left:auto" id="greet">Enjoy the show, <div id="myprofile" onclick="renderProfile()"><%- username %></div>  </h1>
  
     </div>
     <div
@@ -147,7 +160,7 @@
 
             <a style="font-weight: 600;" href="/login"> Log in</a>
          <% } %> 
-          <li>Host a Vstation</li>
+          <li onclick="playlistImport()">My playlists</li>
           <li onclick="renderStations()">List of stations</li>
           <li onclick="renderTopHits({liked:true})">Liked songs</li>
           <li onclick="renderTopHits({liked:false})">Top Hits</li>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #4e4e4e;
+        }
+        #profileCnt{
+            background-color: rgb(45, 40, 45);
+            color: white;
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        #userBio{
+            text-align: center;
+            max-width: 80%;
+        }
+        input{
+            opacity: 0.4;
+            margin: 3px;
+            width: 75%
+        }
+        #wall{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            background-color: #332f34;
+
+        }
+        #pfpSmall{
+            margin: 10px;
+            border-radius: 50%;
+        }
+        button{
+            background: chartreuse;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    width: fit-content;
+    height: 3%;
+    /* margin: 10px; */
+    box-shadow: -5px 5px 1px green;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="profileCnt">
+
+        <img id="profilePic">
+        <h1 id="username"><%-user.username%></h1>
+        <hr style="width:120px">
+        <h2 id="userBio"><%-user.bio?user.bio:"User doesn't have a bio yet, but it would sit here if it was here!"%></h2>
+        <span style="display: inline-flex;align-items: center;">
+            <button id="followBtn">Befriend</button>
+            <p>9999 friends</p>
+        </span>
+        <p id="dataPar"></p>
+        <div id="wall">
+            <img id="pfpSmall" src="https://www.picsum.photos/50">
+            <input>
+        </div>
+    </div>
+   
+
+</body>
+
+</html>

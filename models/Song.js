@@ -22,6 +22,11 @@ const Song = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       allowNull:false,
     },
+    youtubeId:{
+      type:DataTypes.STRING,
+      allowNull:true,
+      defaultValue:null,
+    },
     likes:{
       type:DataTypes.JSON,
       allowNull:false,

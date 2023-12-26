@@ -1,3 +1,6 @@
+const sequelize = require("../db/db");
+const DataTypes = require("sequelize/lib/data-types");
+const User=require("./User")
 const Friendship = sequelize.define(
     'Friendship',
     {
@@ -21,14 +24,14 @@ const Friendship = sequelize.define(
   );
   
   // Define associations
-  User.belongsToMany(User, {
-    through: Friendship,
-    as: 'Friend',
-    foreignKey: 'userId1',
-  });
+  // User.belongsToMany(User, {
+  //   through: Friendship,
+  //   as: 'Friend',
+  //   foreignKey: 'userId1',
+  // });
   
-  Friendship.belongsTo(User, { foreignKey: 'userId1', as: 'user1' });
-  Friendship.belongsTo(User, { foreignKey: 'userId2', as: 'user2' });
+  // Friendship.belongsTo(User, { foreignKey: 'userId1', as: 'user1' });
+  // Friendship.belongsTo(User, { foreignKey: 'userId2', as: 'user2' });
   
   Friendship.sync();
   
