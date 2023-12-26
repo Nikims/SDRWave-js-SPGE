@@ -1,11 +1,20 @@
 const sequelize = require("../db/db");
+const { Op } = sequelize.Sequelize;
 const DataTypes = require("sequelize/lib/data-types");
 const Song = sequelize.define(
   "Song",
   {
+    discoveryDate:{
+      type:DataTypes.DATE,
+      default:Date.now()
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    sampleId:{
+      type: DataTypes.INTEGER,
+      defaultValue: 1,
     },
     id:{
       primaryKey:true,
@@ -36,4 +45,17 @@ const Song = sequelize.define(
   },
   {},
 );
+Song.destroy({
+  where: {
+    name: {
+      [Op.like]: '%Sample Song%',
+    }
+  }
+})
+.then(numDeleted => {
+  console.log(`Deleted ${numDeleted} rows`);
+})
+.catch(err => {
+  console.error('Error occurred while deleting:', err);
+});
 Song.sync();

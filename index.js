@@ -5,6 +5,7 @@ let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 let Song = require("./models/Song");
+const DataTypes = require("sequelize/lib/data-types");
 
 const sequelize = require("./db/db");
 const { spawn ,exec} = require('node:child_process');
@@ -91,7 +92,7 @@ const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
 app.use(express.static(__dirname + "/public"));
-app.use(express.static(__dirname + "/songs"));
+app.use('/songs', express.static((__dirname +'songs')));
 
 const session = require("express-session");
 
@@ -154,7 +155,10 @@ router.use("/api", async (req, res, next) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
+app.get("/getSong",(req,res)=>{
+  const {sampleId} = req.query
+  res.sendFile(`${__dirname}/songs/${sampleId}/audio.mp3`)
+})
 router.use(async (req, res, next) => {
   if (req.method == "GET") {
     console.log("---" + req.session, req.path, req.body);
@@ -270,50 +274,116 @@ router.get("/getRadioStations", async (req, res) => {
   res.send(result);
 });
 router.post("/likeSong",async(req,res)=>{
+  console.log(req.body)
   const songToLike = await Song.findByPk(req.body)
 
   if(songToLike){
     if(req.session.userId){
     songToLike.likes.push({user:req.session.userId})
+   songToLike.save();
+
   res.send(200)}else{
     res.send(400,"Must log in to commit this action.")
     }
   }
 })
-router.get("/topHits",async (req,res)=>{
-  res.render("topHits",{})
-})
-// router.get("/getSongs", async (req, res) => {
-  
-//   user = await User.findByPk(req.session.userId);
-//   try{
-//     usr
-//     console.log("usr found")
-//   result=await Song.findAll({where:{ RadioStationDiscoveredOn:usr.tunedStationID
-//   }})
-//   res.send(result)}catch{
-//     console.log("usr not foudn")
-//    result= await Song.findAll({})
-//    console.log(result)
-   
-//    res.send(result)
-//   }
-// });
-router.post("/getSongs", async (req, res) => {
-  console.log(req.body)
-  const { filterby, radiosource, reversefilterbtn } = req.body;
-  let orderBy;
-  if (filterby === 'date') {
-    orderBy = [['discoveryDate', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
-  } else if (filterby === 'name') {
-    orderBy = [['name', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
-  } else {
-    orderBy = [['likes', reversefilterbtn === '-1' ? 'DESC' : 'ASC']];
+router.post("/unlikeSong", async (req, res) => {
+  try {
+    const songToUnlike = await Song.findByPk(req.body.songId); // Assuming req.body.songId contains the ID of the song to unlike
+
+    if (songToUnlike) {
+      if (req.session.userId) {
+        // Remove the user ID from the likes array
+        const updatedLikes = songToUnlike.likes.filter(like => like.user !== req.session.userId);
+        songToUnlike.likes = updatedLikes;
+        
+        // Save the changes
+        await songToUnlike.save();
+
+        res.sendStatus(200);
+      } else {
+        res.status(400).send("Must log in to commit this action.");
+      }
+    } else {
+      res.status(404).send("Song not found.");
+    }
+  } catch (error) {
+    console.error("Error unliking song:", error);
+    res.status(500).send("Internal Server Error");
   }
 
+});
+
+router.get("/topHits",async (req,res)=>{
+  res.render("topHits",{likedOnly:false})
+})
+router.get("/likedSongs",async (req,res)=>{
+  res.render("topHits",{likedOnly:true})
+})
+router.get("/getSongs", async (req, res) => {
+  
+  user = await User.findByPk(req.session.userId);
+  try{
+    usr
+    console.log("usr found")
+  result=await Song.findAll({where:{ RadioStationDiscoveredOn:usr.tunedStationID
+  }})
+  res.send(result)}catch{
+    console.log("usr not foudn")
+   result= await Song.findAll({})
+   console.log(result)
+   
+   res.send(result)
+  }
+});
+router.get("/getLikedSongs", async (req, res) => {
+  try {
+    const user = await User.findByPk(req.session.userId);
+
+    if (user) {
+      console.log("User found");
+
+      const likedSongs = await Song.findAll({
+        where: {
+          likes: {
+            [Sequelize.Op.contains]: [user.id] 
+          }
+        },
+      });
+
+      res.send(likedSongs);
+    } else {
+      console.log("User not found");
+      res.status(404).send("User not found");
+    }
+  } catch (error) {
+    console.error("Error fetching liked songs:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+router.post("/getSongs", async (req, res) => {
+  user = await User.findByPk(req.session.userId);
+
+  console.log(req.body);
+  const { filterby, radiosource, reversefilterbtn } =JSON.parse( req.body);
+  let orderBy;
+  if (filterby == 'date') {
+    orderBy =[ ['discoveryDate', reversefilterbtn == '-1' ? 'DESC' : 'ASC']];
+  } else if (filterby == 'name') {
+    orderBy = [['name', reversefilterbtn == '-1' ? 'DESC' : 'ASC']]
+  } else {
+    // Default to likes, handled later in code due to complex sorting
+    orderBy = [['likes', reversefilterbtn == '-1' ? 'DESC' : 'ASC']]
+  }
+  console.log(orderBy)
   let whereClause = {};
   if (radiosource === 'curr') {
+    // Assuming user is defined and contains the necessary property
+    if(user && user.tunedStationID){
+
+    
     whereClause = { RadioStationDiscoveredOn: user.tunedStationID };
+    }
   }
 
   try {
@@ -322,21 +392,13 @@ router.post("/getSongs", async (req, res) => {
       order: orderBy
     });
 
-    // Sorting by likes length if filterby is 'likes'
-    if (filterby === 'likes') {
-      result.sort((a, b) => {
-        if (reversefilterbtn === '-1') {
-          return b.likes.length - a.likes.length;
-        } else {
-          return a.likes.length - b.likes.length;
-        }
-      });
-    }
+    // Handle complex sorting by likes separately
+ 
 
-    res.send(result);
+    res.status(200).send(result);
   } catch (error) {
     console.error(error);
-    res.send("An error occurred while fetching songs.");
+    res.status(500).send("An error occurred while fetching songs.");
   }
 });
 
@@ -415,8 +477,8 @@ router.get("/tuneIn", async (req, res) => {
 
     return res.json({ message: "Tuned in successfully", station });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -509,8 +571,9 @@ router.get("/discoverSong", async (req, res) => {
       radio = await RadioStation.findByPk(usr.tunedStationID);
 
       if (radio) {
+        potentialId= DataTypes.UUIDV4
         rnd = Math.round(Math.random() * 1000000);
-
+        // rnd=potentialId
         const childProcess = spawn("mkdir", [`./songs/${rnd}`]);
 
         // Listen for the 'exit' event of the child process
@@ -536,7 +599,7 @@ router.get("/discoverSong", async (req, res) => {
 
           
     
-            commandtwo=`ffmpeg -i ./songs/${rnd}/audio.{flac,mp3}`
+            commandtwo=`ffmpeg -i ./songs/${rnd}/audio.{flac,mp3} -threads 4`
 
 
             exec(commandtwo, (error, stdout, stderr) => {
@@ -566,15 +629,21 @@ router.get("/discoverSong", async (req, res) => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             })
             .then(async(response) => {
-                console.log(response.data.result);
+              
+                console.log(response.data);
+                if(response.data.result){
                 res.send(response.data.result)
                 const newSong = await Song.create({
+                  sampleId:rnd,
                   name:response.data.result.title,
                   artist:response.data.result.artist,
                   discoveredLiveCount: 0,
                   frequencyDiscoveredOn: usr.tunedFrequency,
                   RadioStationDiscoveredOn: usr.tunedStationID
                 });
+              }else{
+                res.send(404)
+              }
             })
             .catch((error) =>  {
                 console.log(error);

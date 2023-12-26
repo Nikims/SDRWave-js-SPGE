@@ -112,7 +112,11 @@
 
 
 
-      renderTopHits=()=>{
+      renderTopHits=(param)=>{
+        if(param.liked){
+          document.querySelector("#stations").src="/likedSongs"
+          return
+        }
         document.querySelector("#stations").src="/topHits"
       }
       renderStations=()=>{
@@ -145,7 +149,8 @@
          <% } %> 
           <li>Host a Vstation</li>
           <li onclick="renderStations()">List of stations</li>
-          <li onclick="renderTopHits()">Top Hits</li>
+          <li onclick="renderTopHits({liked:true})">Liked songs</li>
+          <li onclick="renderTopHits({liked:false})">Top Hits</li>
           <li>Settings</li>
           <li onclick="logout()">Log out</li>
         

@@ -123,7 +123,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 4096; // Adjust the FFT size as needed
+        analyser.fftSize = 2**11; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -153,7 +153,7 @@
         
          
           // Draw the FFT data as a bar graph
-          const barWidth = Math.round((canvas.width / bufferLength) * 2.5);
+          const barWidth = ((canvas.width / bufferLength) * 2.5)
           let barHeight;
           let x = 0;
           cnt=0
@@ -163,13 +163,7 @@
             barHeight = value;
            
             x += barWidth;
-            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, 100%, 50%)`;
-            ctx.fillRect(
-              x,
-              canvas.height - barHeight / 2 + 30,
-              barWidth,
-             3,
-            );
+         
        
             if(cnt%funny==0){
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
@@ -187,6 +181,13 @@
               barHeight / 2,
             );
             }
+            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.8}%)`;
+            ctx.fillRect(
+              x,
+              canvas.height - barHeight / 2 + 30,
+              barWidth,
+             3,
+            );
             //  ctx.fillRect(
             //   x,
             //   canvas.height -  ((barHeight / 2) + 30),
@@ -200,7 +201,7 @@
           ctx.globalAlpha = 0.99;
           //   ctx.fillStyle="white"
           //   ctx.fillRect(0, 0, canvas.width, canvas.height);
-          hueOffset+=4
+          hueOffset+=2
 
           requestAnimationFrame(drawFFT);
         }
@@ -209,7 +210,7 @@
         // audioElement.play();
         drawFFT();
         lol = null;
-      });
+      },{ once: true });
       document.getElementById('name').addEventListener('keyup', async function(event) {
         if (event.code === 'Enter')
         {

@@ -110,6 +110,7 @@
       // Load previous messages when the page loads
       document.addEventListener("DOMContentLoaded", function () {
         loadMessages();
+        setInterval(loadMessages,2000)
       });
     </script>
     <style>
