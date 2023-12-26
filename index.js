@@ -5,8 +5,10 @@ let User = require("./models/User");
 let vStation = require("./models/vStation");
 let Message = require("./models/Message");
 let Song = require("./models/Song");
-const DataTypes = require("sequelize/lib/data-types");
+let Friendship = require("./models/Friendship");
 
+const DataTypes = require("sequelize/lib/data-types");
+const { Op } = require("sequelize");
 const sequelize = require("./db/db");
 const { spawn ,exec} = require('node:child_process');
 const fs=require("fs")
@@ -274,14 +276,17 @@ router.get("/getRadioStations", async (req, res) => {
   res.send(result);
 });
 router.post("/likeSong",async(req,res)=>{
-  console.log(req.body)
-  const songToLike = await Song.findByPk(req.body)
 
+  const songToLike = await Song.findByPk((req.body))
+  console.log('\n\n\n\n\n',songToLike)
   if(songToLike){
-    if(req.session.userId){
-    songToLike.likes.push({user:req.session.userId})
-   songToLike.save();
 
+    if(req.session.userId ){
+      if(!songToLike.likes.includes(req.session.userId)){
+    songToLike.likes=songToLike.likes.concat(req.session.userId)
+    console.log('\n\n\n\n\n\n\n\n',songToLike.likes)
+   await songToLike.save();
+      }
   res.send(200)}else{
     res.send(400,"Must log in to commit this action.")
     }
@@ -294,7 +299,7 @@ router.post("/unlikeSong", async (req, res) => {
     if (songToUnlike) {
       if (req.session.userId) {
         // Remove the user ID from the likes array
-        const updatedLikes = songToUnlike.likes.filter(like => like.user !== req.session.userId);
+        const updatedLikes = songToUnlike.likes.filter(like => like !== req.session.userId);
         songToUnlike.likes = updatedLikes;
         
         // Save the changes
@@ -336,7 +341,7 @@ router.get("/getSongs", async (req, res) => {
    res.send(result)
   }
 });
-router.get("/getLikedSongs", async (req, res) => {
+router.post("/getLikedSongs", async (req, res) => {
   try {
     const user = await User.findByPk(req.session.userId);
 
@@ -346,11 +351,10 @@ router.get("/getLikedSongs", async (req, res) => {
       const likedSongs = await Song.findAll({
         where: {
           likes: {
-            [Sequelize.Op.contains]: [user.id] 
-          }
+            [Op.substring]: String(user.id),
+          },
         },
       });
-
       res.send(likedSongs);
     } else {
       console.log("User not found");
@@ -361,6 +365,7 @@ router.get("/getLikedSongs", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 router.post("/getSongs", async (req, res) => {
   user = await User.findByPk(req.session.userId);
 

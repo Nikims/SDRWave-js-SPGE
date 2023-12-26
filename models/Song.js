@@ -45,6 +45,7 @@ const Song = sequelize.define(
   },
   {},
 );
+
 Song.destroy({
   where: {
     name: {
