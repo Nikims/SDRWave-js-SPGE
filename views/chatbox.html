@@ -71,6 +71,9 @@
           sendMessage();
         }
       });
+      function goToProfile(message){
+        parent.parent.querySelector("#stations").src=`/user?username=${message.senderUsername}`
+      }
       function loadMessages() {
         fetch("/chatMessages")
           .then((response) => response.json())
@@ -80,13 +83,29 @@
             console.log(data);
             data.chatMessages.forEach((message) => {
               const messageDiv = document.createElement("div");
-              messageDiv.textContent = `${message.senderUsername}: ${message.messageContent}`;
+              usrname=document.createElement("span")
+              usrname.innerText=message.senderUsername
+              usrname.dataset.username=message.senderUsername
+              messageDiv.appendChild(usrname)
+              content=document.createElement("span")
+              content.innerText=": "+message.messageContent
+              messageDiv.appendChild(content)
+
+              usrname.addEventListener("click",(e)=>{
+              (parent.parent.document.querySelector("#stations").src="/user?"+"username="+ e.target.dataset.username)
+                // parent.parent.src="/usr?"+"username="+ usrname.dataset.usernam
+              })
+              // messageDiv.innerHTML = `<p>: ${message.messageContent}</p>`;
+             
               chatbox.appendChild(messageDiv);
             });
           })
           .catch((error) => console.error("Error:", error));
       }
-
+      document.querySelectorAll(".usernameInChat").forEach(usrname=>usrname.addEventListener("click",(e)=>{
+        console.log("hi")
+        // parent.parent.querySelector("#stations").src=`/user?username=${usrname.dataset.username}`
+      }))
       // Function to send a message
       function sendMessage() {
         const content = messageInput.value;

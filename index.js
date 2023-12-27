@@ -7,6 +7,7 @@ let Message = require("./models/Message");
 let Song = require("./models/Song");
 let Friendship = require("./models/Friendship");
 let Playlist = require("./models/Playlist");
+let Thread = require("./models/Thread");
 
 const DataTypes = require("sequelize/lib/data-types");
 const { Op } = require("sequelize");
@@ -391,11 +392,16 @@ router.post("/unlikeSong", async (req, res) => {
 
 });
 router.get("/user",async (req,res)=>{
+
+selfUser = await User.findByPk(req.session.userId)
+
 user=  await User.findOne({where:{
     username:req.query.username
   }})
+  
   console.log(user+"\n\n\n\n\n")
-  res.render("profile",{user:user})
+ userthreads= await Thread.findAll({where:{postedOn:user.id}})
+  res.render("profile",{user:user,selfUser:selfUser,threads:userthreads})
 })
 router.get("/topHits",async (req,res)=>{
   user= await User.findOne({where:{id:req.session.userId}})
@@ -478,6 +484,7 @@ router.post("/getSongs", async (req, res) => {
       where: whereClause,
       order: orderBy
     });
+    console.log('orderBy:', orderBy);
 
     // Handle complex sorting by likes separately
  
@@ -650,6 +657,23 @@ router.get("/chatMessages", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+router.post("/thread",async(req,res)=>{
+  const user = await User.findByPk(req.session.userId);
+  if(user){
+    newthread = await Thread.create({postedOn:req.body.username,postedBy:user.id, content:req.body.content})
+    newthread.save()
+  }
+})
+router.get("/threads",async(req,res)=>{
+  const user = await User.findByPk(req.session.userId);
+  if(user){
+    threads = await Thread.findAll({
+      where: { postedOn: req.query.username },
+      order: [['postDate', 'ASC']]
+    });    res.send(JSON.stringify(threads))
+  }
+})
 
 router.get("/discoverSong", async (req, res) => {
   try {

@@ -118,9 +118,9 @@
     <script>
 
 
-playlistImport=()=>{
+playlistImport=async()=>{
  id= prompt("Enter playlist ID","PL0Jks44vwre23hgZb_h8p2WgxzWAYqera")
-  fetch("/addPlaylist",{method:"POST",body:id})
+  await fetch("/addPlaylist",{method:"POST",body:id})
 }
       renderTopHits=(param)=>{
         if(param.liked){
@@ -137,9 +137,13 @@ playlistImport=()=>{
       method: 'POST'})
       location.reload()
     }
-    renderProfile=()=>{
-      document.querySelector("#stations").src=`/user?username=<%=username%>`
-    }
+    renderProfile = () => {
+  <% if (username !== "Guest") { %>
+    document.querySelector("#stations").src = `/user?username=<%= username %>`;
+  <% } else { %>
+    window.location.href = "/login";
+  <% } %>
+}
     </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
@@ -160,7 +164,9 @@ playlistImport=()=>{
 
             <a style="font-weight: 600;" href="/login"> Log in</a>
          <% } %> 
-          <li onclick="playlistImport()">My playlists</li>
+         <li onclick="playlistImport()">My playlists</li>
+
+          <li onclick="playlistImport()">Import Youtube Playlist</li>
           <li onclick="renderStations()">List of stations</li>
           <li onclick="renderTopHits({liked:true})">Liked songs</li>
           <li onclick="renderTopHits({liked:false})">Top Hits</li>
@@ -196,7 +202,7 @@ playlistImport=()=>{
         }, 3000);
     });
 
-AccntCont.addEventListener('mouseenter', () => {
+AccntCont.children[0].addEventListener('mouseenter', () => {
   console.log("unok")
             clearTimeout(cancelableTimeout)
             playerel.style.height="100%"
