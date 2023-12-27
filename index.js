@@ -17,6 +17,11 @@ const axios = require('axios');
 const dotenv = require("dotenv");
 dotenv.config();
 const GoogleApiKey = process.env.APIGOOGLE;
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+const path = require("path")
+
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
 
@@ -169,7 +174,26 @@ router.post("/addPlaylist",async (req,res)=>{
     res.send(403)
   }
 })
+app.post('/uploadPFP', upload.single('file'), (req, res) => {
+  try {
+      const userId = req.session.userId; // Replace with how you retrieve user ID from the request
 
+      // Create a folder with user ID if it doesn't exist
+      const userFolderPath = path.join(__dirname, 'public', userId.toString());
+      if (!fs.existsSync(userFolderPath)) {
+          fs.mkdirSync(userFolderPath);
+      }
+
+      // Write the file to the user's folder as pfp.png
+      const filePath = path.join(userFolderPath, 'pfp.png');
+      fs.writeFileSync(filePath, req.file.buffer);
+
+      res.json({ success: true, message: 'File uploaded successfully' });
+  } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 router.use("/api", async (req, res, next) => {
   try {
     // if (!req.session.userId) {

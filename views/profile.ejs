@@ -60,6 +60,8 @@
 
         <img id="profilePic">
         <h1 id="username"><%-user.username%></h1>
+        <img style='max-width:200px' id="pfpBig" src="/<%-user.id%>/pfp.png" onclick="document.getElementById('profilePicInput').click();">
+        <input type="file" id="profilePicInput" style="display: none" onchange="handleFileSelect(event)">
         <hr style="width:120px">
         <h2 id="userBio"><%-user.bio?user.bio:"User doesn't have a bio yet, but it would sit here if it was here!"%></h2>
         <span style="display: inline-flex;align-items: center;">
@@ -68,11 +70,32 @@
         </span>
         <p id="dataPar"></p>
         <div id="wall">
-            <img id="pfpSmall" src="https://www.picsum.photos/50">
+            <img width="50px" height="50px" id="pfpSmall" src="/<%-user.id%>/pfp.png">
             <input>
         </div>
     </div>
-   
+    <script>
+       async function handleFileSelect(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+        console.log('hi')
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+              res=  await fetch('/uploadPFP', {
+                    method: 'POST',
+                    body: formData
+                })
+              await console.log(res.json())
+                
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                    // Handle error or update UI as needed
+                });
+            }
+        }
+    </script>
 
 </body>
 
