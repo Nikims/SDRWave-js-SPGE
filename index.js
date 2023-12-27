@@ -391,6 +391,13 @@ router.post("/unlikeSong", async (req, res) => {
   }
 
 });
+router.post("/changeBio",async (req,res)=>{
+  user=await User.findByPk(req.session.userId)
+  if(user){
+    user.bio=req.body
+    user.save()
+  }
+})
 router.get("/user",async (req,res)=>{
 
 selfUser = await User.findByPk(req.session.userId)
@@ -663,6 +670,10 @@ router.post("/thread",async(req,res)=>{
   if(user){
     newthread = await Thread.create({postedOn:req.body.username,postedBy:user.id, content:req.body.content})
     newthread.save()
+    res.send(200)
+    console.log("\n\n\n\n\n"+JSON.stringify(newthread))
+  }else{
+    res.send(403)
   }
 })
 router.get("/threads",async(req,res)=>{

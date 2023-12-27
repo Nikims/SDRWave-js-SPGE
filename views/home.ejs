@@ -168,7 +168,10 @@ playlistImport=async()=>{
 
           <li onclick="playlistImport()">Import Youtube Playlist</li>
           <li onclick="renderStations()">List of stations</li>
+          <% if(username!="Guest") {%> 
+
           <li onclick="renderTopHits({liked:true})">Liked songs</li>
+          <% } %>
           <li onclick="renderTopHits({liked:false})">Top Hits</li>
           <li>Settings</li>
           <li onclick="logout()">Log out</li>
