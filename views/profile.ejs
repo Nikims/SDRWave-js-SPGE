@@ -39,7 +39,16 @@
             margin: 3px;
             width: 75%
         }
-
+ 
+        
+        .threadContent>p{
+            max-width: 300px;
+        word-break: normal;
+        overflow-wrap: anywhere;
+        }
+        .thread{
+            display: flex;
+        }
         #wall {
             width: 100%;
             display: flex;
@@ -47,12 +56,24 @@
             background-color: #332f34;
 
         }
-
+        #followBtn:hover{
+        position: relative;
+        background: chartreuse;
+        color: black;
+        border: none;
+        right: 3px;
+        top: 3px;
+        border-radius: 4px;
+        /* width: 30%; */
+        box-shadow: -2px 2px 1px green;
+        }
         #pfpSmall {
             margin: 10px;
             border-radius: 50%;
         }
-
+        p{
+            margin: 10px;
+        }
         button {
             background: chartreuse;
             color: black;
@@ -63,60 +84,32 @@
             /* margin: 10px; */
             box-shadow: -5px 5px 1px green;
         }
+        .pfpSmall{
+            border-radius: 100%;
+        }
+        .avatar{
+            width: fit-content;
+            height: fit-content;
+            max-width: 150px;
+            max-height: 150px;
+        }
 
         #threads {
             width: 80%;
             display: flex;
             flex-direction: column;
         }
+        .bi{
+        left: -15%;
+        position: relative;
+        top: -10%;
+        }
     </style>
 </head>
 
 <body>
-    <div id="profileCnt">
-
-        <img id="profilePic">
-        <h1 id="username"><%-user.username%></h1>
-        <img style='max-width:200px' id="pfpBig" src="/<%-user.id%>/pfp.png"
-            onclick="document.getElementById('profilePicInput').click();">
-        <% if (user.username === selfUser.username) { %>
-        <input type="file" id="profilePicInput" style="display: none" onchange="handleFileSelect(event)">
-        <% } %>
-        <hr style="width:120px">
-        <h2 contenteditable="<%-selfUser.id==user.id%>" id="userBio">
-            <%-user.bio?user.bio:"User doesn't have a bio yet, but it would sit here if it was here!"%>
-        </h2>
-        <span style="display: inline-flex;align-items: center;">
-            <button id="followBtn">Befriend</button>
-            <p>9999 friends</p>
-        </span>
-        <p id="dataPar"></p>
-        <div id="wall">
-            <img width="50px" height="50px" id="pfpSmall" src="/<%-selfUser.id%>/pfp.png">
-            <input id="newThread" onkeydown="handleKeyPress(event)">
-
-        </div>
-        <div id="threads">
-            <% threads.forEach(thread => { %>
-            <div class="thread">
-                <img width="50px" height="50px" class="pfpSmall" src="/<%- thread.postedBy %>/pfp.png">
-                <div class="threadContent">
-                    <p><%- thread.content %></p>
-                    <p>Posted by: <%- thread.posterUsername %></p>
-                </div>
-            </div>
-            <% }); %>
-        </div>
-    </div>
     <script>
-        console.log(<% -JSON.stringify(threads) %>)
-       let bio=document.querySelector("#userBio")
-        if(bio.contentEditable=="true"){
-            bio.addEventListener("focusout",(e)=>{
-                fetch("/changeBio",{method:"POST",body:e.target.innerText})
-            })
-        }
-        function handleKeyPress(event) {
+         async function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 // Get the message from the input field
                 const message = document.getElementById('newThread').value.trim();
@@ -124,7 +117,7 @@
                 // Check if the message is not empty
                 if (message) {
                     // Send a POST request to the /thread route
-                    fetch('/thread', {
+                    resp=await fetch('/thread', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -134,22 +127,41 @@
                             content: message,
                         }),
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Handle the response if needed
-                            console.log(data);
-                        })
-                        .catch(error => {
-                            // Handle errors if any
-                            console.error('Error:', error);
-                        });
-
+                        response = await resp
+                        data=await response
+                        console.log(data)
+                        document.getElementById('newThread').value = '';
+                        sessionStorage.setItem("scroll", document.body.scrollTop);
+                         window.location.reload()
                     // Clear the input field
-                    document.getElementById('newThread').value = '';
+                   
                 }
             }
         }
+        window.addEventListener('load', ()=>{
+            document.body.scrollTop=sessionStorage.getItem("scroll");
+        });
+        document.addEventListener("DOMContentLoaded",()=>{
+            try{
+            document.querySelector("#followBtn").onclick=async()=>{
+            res=await fetch("/sendFriendRequest",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
+            console.log(res)
+        }
+    }catch(e){
+        
+    }
+       let bio=document.querySelector("#userBio")
+       console.log(bio)
+        if(bio.contentEditable=="true"){
+            bio.addEventListener("focusout",async (e)=>{
+              res=await  fetch("/changeBio",{method:"POST",body:e.target.innerText})
+              console.log(res)
+            })
+        }
+       
 
+       
+        })
         async function handleFileSelect(event) {
             const fileInput = event.target;
             const file = fileInput.files[0];
@@ -170,6 +182,62 @@
                     });
             }
         }
+    
+     
+    </script>
+    <div id="profileCnt">
+
+        <img id="profilePic">
+        <h1 id="username"><%-user.username%></h1>
+        <div width="200px" heigth="200px">
+            <img class="avatar" src="/<%- user.id + '/pfp.png' %>" onerror="this.src='/default.jpg';"
+                onclick="document.getElementById('profilePicInput').click();">
+        
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil"
+                viewBox="0 0 16 16">
+                <path
+                    d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+            </svg>
+            
+        </div>
+        <% if (user.username === selfUser.username) { %>
+        <input type="file" id="profilePicInput" style="display: none" onchange="handleFileSelect(event)">
+        <% } %>
+        <hr style="width:120px">
+        <h2 contenteditable="<%-selfUser.id==user.id%>" id="userBio">
+            <%-user.bio?user.bio:"User doesn't have a bio yet, but it would sit here if it was here! Click to set"%>
+        </h2>
+        <span style="display: inline-flex;align-items: center;">
+            <% if (user.username!= selfUser.username) { %>
+            <button id="followBtn">Befriend</button>
+            <%}%>
+            <p>9999 friends</p>
+        </span>
+        <p id="dataPar"></p>
+        <div id="wall">
+            <img width="50px" height="50px" id="pfpSmall" src="/<%-selfUser.id%>/pfp.png"  onerror="this.src='/default.jpg';">
+            <input id="newThread" onkeydown="handleKeyPress(event)">
+
+        </div>
+        <div id="threads">
+            <% threads.reverse().forEach(thread => { %>
+            <div class="thread">
+                <img width="50px" height="50px" class="pfpSmall" src="/<%- thread.postedBy %>/pfp.png"   onerror="this.src='/default.jpg';">
+                <div class="threadContent">
+                    <p style="font-weight:bold;"><%- thread.posterUsername %></p>
+                    <p><%- thread.content %></p>
+                    <%date=new Date(thread.createdAt)%>
+                    <span style="font-size: smallest;position: inherit;top: -65%;left:400%; opacity: 40%;"><%- date.getDate() + '.' + (date.getMonth()+1) + '.' + date.getFullYear(); %></span>
+
+                </div>
+            </div>
+            <hr style="width: 90%;">
+
+            <% }); %>
+        </div>
+    </div>
+    <script>
+     
     </script>
 
 </body>

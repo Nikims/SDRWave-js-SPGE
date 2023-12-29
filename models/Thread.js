@@ -6,8 +6,8 @@ const User = require("./User");
 const Thread = sequelize.define("Thread",
   {
     postDate:{
-      type:DataTypes.DATE,
-      default:Date.now()
+      type:DataTypes.STRING,
+      default:JSON.stringify(Date.now())
     },
     content: {
       type: DataTypes.STRING,

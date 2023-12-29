@@ -55,6 +55,10 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true, //todo change if ever write verifications
     },
+    friendRequests: {
+      type: DataTypes.JSON, 
+      defaultValue:[]
+    },
   },
   {},
 );

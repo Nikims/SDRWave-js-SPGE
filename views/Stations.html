@@ -34,6 +34,11 @@
           document.getElementById("radios-container").appendChild(n);
           n.addEventListener("click", () => {
             console.log(i);
+            for (let j of document.querySelectorAll(".radio-box")) {
+              if(j!=n) j.style.background="rgb(40,40,40)"
+            }
+            n.style.background="#1c420f"
+
             if (i.id) {
               fetch(
                 "/tuneIn?" +

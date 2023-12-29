@@ -18,6 +18,8 @@
 
       body
       {
+        background-color: #303030;
+
         height: 100%;
       }
 
@@ -112,36 +114,41 @@
         transition: .3s;
         border-style: solid;
         border-width: 2px;
-        border-color: #4e4e4e;
       }   
     </style>
     <script>
 
 
-playlistImport=async()=>{
- id= prompt("Enter playlist ID","PL0Jks44vwre23hgZb_h8p2WgxzWAYqera")
-  await fetch("/addPlaylist",{method:"POST",body:id})
-}
-      renderTopHits=(param)=>{
-        if(param.liked){
-          document.querySelector("#stations").src="/likedSongs"
-          return
-        }
-        document.querySelector("#stations").src="/topHits"
-      }
-      renderStations=()=>{
-        document.querySelector("#stations").src="/stationsPage"
-
-      }
-       logout =()=> {fetch('/logout', {
-      method: 'POST'})
-      location.reload()
+  playlistImport = async () => {
+    id = prompt("Enter playlist ID", "PL0Jks44vwre23hgZb_h8p2WgxzWAYqera")
+    await fetch("/addPlaylist", { method: "POST", body: id })
+  }
+  renderTopHits = (param) => {
+    if (param.liked) {
+      document.querySelector("#stations").src = "/likedSongs"
+      return
     }
-    renderProfile = () => {
+    document.querySelector("#stations").src = "/topHits"
+  }
+  renderStations = () => {
+    document.querySelector("#stations").src = "/stationsPage"
+
+  }
+  renderFriends=()=>{
+    document.querySelector("#stations").src = "/myFriends"
+
+  }
+  logout = () => {
+    fetch('/logout', {
+      method: 'POST'
+    })
+    location.reload()
+  }
+  renderProfile = () => {
   <% if (username !== "Guest") { %>
-    document.querySelector("#stations").src = `/user?username=<%= username %>`;
+      document.querySelector("#stations").src = `/user?username=<%= username %>`;
   <% } else { %>
-    window.location.href = "/login";
+      window.location.href = "/login";
   <% } %>
 }
     </script>
@@ -169,7 +176,7 @@ playlistImport=async()=>{
           <li onclick="playlistImport()">Import Youtube Playlist</li>
           <li onclick="renderStations()">List of stations</li>
           <% if(username!="Guest") {%> 
-
+          <li onclick="renderFriends()">Friends</li>
           <li onclick="renderTopHits({liked:true})">Liked songs</li>
           <% } %>
           <li onclick="renderTopHits({liked:false})">Top Hits</li>

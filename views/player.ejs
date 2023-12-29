@@ -6,18 +6,27 @@
     <style>
       html
       {
+        width: 110%;
         overflow: hidden;
+        background-color: #303030;
+
       }
 
       #fftCanvas
       {
+        width: max-content;
+        height: max-content;
         border-width: 4px;
         box-shadow: 0 1px 10px #000;
-        max-width: 93;
       }
-
+      #avDiv{
+        max-width: 90%;
+        max-height: 20%;
+        height: min-content;
+      }
       #vizPlayerCont>audio
       {
+        position: relative;
         transition: .3s;
         max-block-size: 30px;
         align-self: flex-end;
@@ -41,6 +50,10 @@
         position: absolute;
         transition: .4s;
       }
+      canvas{
+        overflow: hidden;
+        width: 110%;
+      }
 
       .slider
       {
@@ -62,6 +75,11 @@
         bottom: 4px;
         background-color: #fff;
         border-radius: 50%;
+      }
+      audio{
+      border:3px solid chartreuse;
+              border-radius: 50px;
+        background: chartreuse;
       }
       #songDiscoverBtn{
         background: chartreuse;
@@ -108,14 +126,14 @@
     </style>
   </head>
   <body style="height: 100%;" >
-    <div id="vizPlayerCont">
-    <audio controls crossorigin="anonymous" autoplay id="audioElement">
-      <source src="/api/radio/audio.ogg" type="audio/ogg" />
-      Your browser does not support the audio tag.
-    </audio>
-  </div>
+  
     <script>
       // Get the audio element and create an audio context
+      t=0
+      mouseX=0
+      document.addEventListener("mousemove",(e)=>{
+        mouseX=e.clientX
+      })
       lol = document.addEventListener("click", () => {
         const audioElement = document.getElementById("audioElement");
         const audioContext = new (window.AudioContext ||
@@ -123,7 +141,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2**11; // Adjust the FFT size as needed
+        analyser.fftSize = 2**10; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -138,6 +156,7 @@
 
         // Function to draw the FFT visualization
         function drawFFT() {
+          t++
           const bufferLength = analyser.frequencyBinCount;
           const dataArray = new Uint8Array(bufferLength);
           analyser.getByteFrequencyData(dataArray);
@@ -157,8 +176,9 @@
           let barHeight;
           let x = 0;
           cnt=0
+          omt=0
           dataArray.forEach((value) => {
-            
+            omt++
             
             barHeight = value;
            
@@ -168,25 +188,25 @@
             if(cnt%funny==0){
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
             ctx.fillRect(
-              x,
-              canvas.height - barHeight / 2 + 45,
+              x+Math.sin(t%100/31.84+omt/10)*10-120,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*2,
               barWidth*funny,
               barHeight / 2,
             );
             
             ctx.strokeRect(
-              x,
-              canvas.height - barHeight / 2 + 45,
+              x+Math.sin(t%100/31.84+omt/10)*10-120,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*2,
               barWidth*funny,
               barHeight / 2,
             );
             }
-            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.8}%)`;
+            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
             ctx.fillRect(
               x,
               canvas.height - barHeight / 2 + 30,
               barWidth,
-             3,
+             10,
             );
             //  ctx.fillRect(
             //   x,
@@ -198,7 +218,7 @@
           });
 
           // Request the next frame
-          ctx.globalAlpha = 0.99;
+          ctx.globalAlpha = 0.9999;
           //   ctx.fillStyle="white"
           //   ctx.fillRect(0, 0, canvas.width, canvas.height);
           hueOffset+=2
@@ -211,24 +231,43 @@
         drawFFT();
         lol = null;
       },{ once: true });
-      document.getElementById('name').addEventListener('keyup', async function(event) {
-        if (event.code === 'Enter')
-        {
+    //   document.getElementById('name').addEventListener('keyup', async function(event) {
+    //     if (event.code === 'Enter')
+    //     {
           
-            event.preventDefault();
-            const form = document.getElementById('changefreqform');
-            // await fetch(<%= host?host:"" %>/api/frequency,{method:"POST",  body: formData})
+    //         event.preventDefault();
+    //         const form = document.getElementById('changefreqform');
+    //         // await fetch(<%= host?host:"" %>/api/frequency,{method:"POST",  body: formData})
             
-          form.submit();
-        }
-    });
+    //       form.submit();
+    //     }
+    // });
     </script>
     <div>
       <h2>Tuner</h2>
-      <div>Current frequency: <span id="tuner-element"></span></div>
+      <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
        
    
       <script type="text/javascript">
+        document.querySelector("#tuner-element").addEventListener("focusout",async(e)=>{
+          console.log("debig")
+          host="<%=host%>"
+          console.log(host,host=="http://localhost:8080")
+          if(host=="http://localhost:8080"){
+            host=""
+          }
+          const formData = new FormData();
+          const label = document.createElement("label");
+  label.setAttribute("for", "change-freq");
+  label.innerText = "New Frequency:";
+  formData.set("frequency", e.target.innerText);
+  formData.set("label", label.innerText);
+  ok=(formData)
+  const response = await fetch(`${host}/api/frequency`, {
+    method: 'POST',
+    body:JSON.stringify({ok:JSON.stringify(ok)}) ,
+  });
+        })
         async function updateTuner() {
           let data = {};
           try {
@@ -247,12 +286,18 @@
 
       </script>
     </div>
-
-    <canvas id="fftCanvas" width="800" height="200"></canvas>
-    <form method="POST" id="changefreqform" action='<%= host?host:"" %>/api/frequency'>
-      <label for="tupo"><%= host%>:</label>
-      <input type="text" id="change-freq" name="frequency">
-    </form>
+<div id="avDiv">
+  <canvas style="background-color: black;" width="700" height="max-block-size" id="fftCanvas" ></canvas>
+  <div id="vizPlayerCont">
+    <audio controls crossorigin="anonymous" autoplay id="audioElement">
+      <source src="/api/radio/audio.ogg" type="audio/ogg" />
+      Your browser does not support the audio tag.
+    </audio>
+  </div>
+</div>
+      
+    </canvas>
+  
     <p id="songName"></p>
     <button id="songDiscoverBtn" onclick="
    
