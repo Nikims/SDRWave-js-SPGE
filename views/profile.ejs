@@ -154,7 +154,7 @@
        console.log(bio)
         if(bio.contentEditable=="true"){
             bio.addEventListener("focusout",async (e)=>{
-              res=await  fetch("/changeBio",{method:"POST",body:e.target.innerText})
+              res=await fetch("/changeBio",{method:"POST",body:e.target.innerText})
               console.log(res)
             })
         }
@@ -205,7 +205,8 @@
         <% } %>
         <hr style="width:120px">
         <h2 contenteditable="<%-selfUser.id==user.id%>" id="userBio">
-            <%-user.bio?user.bio:"User doesn't have a bio yet, but it would sit here if it was here! Click to set"%>
+            <%=(user.bio ? user.bio : "User doesn't have a bio yet, but it would sit here if it was here!" )%>
+          <%=(!user.bio && selfUser.username.valueOf==user.username.valueOf) ? "Click to set" : "" %>
         </h2>
         <span style="display: inline-flex;align-items: center;">
             <% if (user.username!= selfUser.username) { %>

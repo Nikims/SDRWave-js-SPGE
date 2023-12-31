@@ -10,7 +10,7 @@ let Playlist = require("./models/Playlist");
 let Thread = require("./models/Thread");
 
 const DataTypes = require("sequelize/lib/data-types");
-const { Op } = require("sequelize");
+const { Op, json } = require("sequelize");
 const sequelize = require("./db/db");
 const { spawn, exec } = require("node:child_process");
 const fs = require("fs");
@@ -452,7 +452,7 @@ router.get("/user", async (req, res) => {
 });
 app.post("/sendFriendRequest", async (req, res) => {
   const username = JSON.parse(req.body).username;
-  console.warn(username)
+  console.warn(username);
   const currentUser = res.locals.user;
 
   const friend = await User.findOne({ where: { username: username } });
@@ -460,26 +460,57 @@ app.post("/sendFriendRequest", async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
 
-  console.log(friend.friendRequests)
-  friend.friendRequests = friend.friendRequests.concat([currentUser.id]);
+  console.log(friend.friendRequests);
+  if (!!friend.friendRequests.indexOf(currentUser.id)) {friend.friendRequests = friend.friendRequests.concat([currentUser.id]);}
+  await friend.save()
+  console.log(friend.friendRequests);
 
-  await friend.save();
   res.status(200).json({ message: "Friend request sent" });
 });
 
-app.get("/acceptFriendRequest", async (req, res) => {
+app.post("/acceptFriendRequest", async (req, res) => {
   try {
     const currentUser = res.locals.user;
-    const friendUsername = req.query.username;
+    const friendUsername = JSON.parse(req.body).username;
     const friend = await User.findOne({ where: { username: friendUsername } });
 
     if (!friend) {
       return res.status(404).json({ error: "User not found" });
     }
-    
-    await Friendship.create({ user1: currentUser.id, user2: friend.id });
+    try {
+      await Friendship.create({ user1: currentUser.id, user2: friend.id });
+    } catch (e) {
+      res.status(400);
+    }
+    await Friendship.sync();
+    const frReq =  currentUser.friendRequests
+    console.log(currentUser.friendRequests)
+    currentUser.friendRequests=((frReq)).filter(e => e != friend.id)
+    console.log(currentUser.friendRequests)
 
+   await currentUser.save();
     res.status(200).json({ message: "Friend request accepted" });
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+});
+
+app.post("/denyFriendRequest", async (req, res) => {
+  try {
+    const currentUser = res.locals.user;
+    const friendUsername = JSON.parse(req.body).username;
+    const fiend = await User.findOne({ where: { username: friendUsername } });
+
+    if (!fiend) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const frReq =  currentUser.friendRequests
+    console.log(currentUser.friendRequests)
+    currentUser.friendRequests=((frReq)).filter(e => e != friend.id)
+    console.log(currentUser.friendRequests)
+
+   await currentUser.save();
+    res.status(200).json({ message: "Friend request denied" });
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
   }
@@ -518,36 +549,33 @@ app.post("/unfriend", async (req, res) => {
 });
 
 router.get("/myFriends", async (req, res) => {
-  const userId = res.locals.user.dataValues.id
-  console.log(userId)
+  const userId = res.locals.user.dataValues.id;
+  console.log(userId);
   const friendships = await Friendship.findAll({
     where: {
-      [Op.or]: [
-        { user1: userId },
-        { user2: userId }
-      ]
-    }
+      [Op.or]: [{ user1: userId }, { user2: userId }],
+    },
   });
 
- 
-
   // Extract the friend's userIds
-  const friendUserIds = friendships.map(friendship => 
+  const friendUserIds = friendships.map((friendship) =>
     friendship.user1 === userId ? friendship.user2 : friendship.user1
   );
 
   // Fetch the user's friends
   const friends = await User.findAll({ where: { id: friendUserIds } });
-  let result=[]
-    for(i of res.locals.user.friendRequests){
-      usrn=await User.findByPk(i)
-      result.push({id:i,username:usrn.username} )
-   
-    }
-  const myFriendRequests=JSON.stringify(result)
-    console.log("\n\n\n\n\n\n\n\n\n\n\n\n"+myFriendRequests)
+  let result = [];
+  for (i of res.locals.user.friendRequests) {
+    usrn = await User.findByPk(i);
+    result.push({ id: i, username: usrn.username });
+  }
+  const myFriendRequests = JSON.stringify(result);
+  console.log("\n\n\n\n\n\n\n\n\n\n\n\n" + myFriendRequests);
   // Send a success response with the friends
-  res.render("friends",{friend:JSON.stringify(friends),friendRequests:myFriendRequests})
+  res.render("friends", {
+    friends: JSON.stringify(friends),
+    friendRequests: myFriendRequests,
+  });
 });
 
 router.get("/topHits", async (req, res) => {
@@ -763,15 +791,14 @@ router.get("/chatMessages", async (req, res) => {
 });
 
 router.post("/thread", async (req, res) => {
-    newthread = await Thread.create({
-      postedOn: req.body.username,
-      postedBy: res.locals.user.id,
-      content: req.body.content,
-    });
-    newthread.save();
-    res.send(200);
-    console.log("\n\n\n\n\n" + JSON.stringify(newthread));
-  
+  newthread = await Thread.create({
+    postedOn: req.body.username,
+    postedBy: res.locals.user.id,
+    content: req.body.content,
+  });
+  newthread.save();
+  res.send(200);
+  console.log("\n\n\n\n\n" + JSON.stringify(newthread));
 });
 router.get("/threads", async (req, res) => {
   const user = await User.findByPk(req.session.userId);
