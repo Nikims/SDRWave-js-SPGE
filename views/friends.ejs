@@ -110,7 +110,7 @@
         <h1 style="color: rgb(172, 172, 172);">Your friend requests go here, currently empty.</h1>
         <%}%>
     <span style="display: block;"></span>
-    <% for(i of JSON.parse(friend)){%>
+    <% for(i of JSON.parse(friends)){%>
         <div class="friendContainer">
         <img width="100px" height="100px" class="pfpThumb"
         src="/<%-i.id%>/pfp.png" onerror="this.src='/default.jpg';">

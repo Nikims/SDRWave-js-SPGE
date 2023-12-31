@@ -50,9 +50,24 @@
 </head>
 
 <body style="margin: 0px;width: 93%;">
-  <div id="chatbox">
-    <!-- Messages will be displayed here -->
+  <form>
+    <label style="color: #ccc;" for="chatsrc">I wanna chat with</label>
+  <select name="chatsrc" id="chatsrc">
+    <option value="current">Current station listeners</option>
+    <option value="Friends">a friend</option>
+  </select>
+  <div id="friendSelector" style="display: none;">
+    <label style="color: #ccc;" for="friend">called:</label>
+
+    <select name="friend">
+      <option value="bob">Bob</option>
+    </select>
   </div>
+ 
+</form>
+  <div id="chatbox">
+  </div>
+    <!-- Messages will be displayed here -->
   <div id="messageinput-cnt">
     <button onclick="sendMessage()" hidden></button>
     <div>
@@ -60,6 +75,17 @@
     </div>
   </div>
   <script>
+    document.querySelector("#chatsrc").addEventListener("change",async(e)=>{
+      friendSelectorDisplay= document.querySelector("#friendSelector")
+      console.log(e.target.value)
+
+      if(e.target.value=="Friends"){
+       friendSelectorDisplay.style.display="block"
+        console.log(friendSelectorDisplay)
+      }else{
+       friendSelectorDisplay.style.display="none"
+      }
+    })
     // Function to load previous messages
     const messageInput = document.getElementById("messageInput");
     messageInput.addEventListener("keypress", function (event) {

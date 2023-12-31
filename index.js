@@ -506,7 +506,7 @@ app.post("/denyFriendRequest", async (req, res) => {
     }
     const frReq =  currentUser.friendRequests
     console.log(currentUser.friendRequests)
-    currentUser.friendRequests=((frReq)).filter(e => e != friend.id)
+    currentUser.friendRequests=((frReq)).filter(e => e != fiend.id)
     console.log(currentUser.friendRequests)
 
    await currentUser.save();
