@@ -54,12 +54,12 @@
     <label style="color: #ccc;" for="chatsrc">I wanna chat with</label>
   <select name="chatsrc" id="chatsrc">
     <option value="current">Current station listeners</option>
-    <option value="Friends">a friend</option>
+    <option value="friends">a friend</option>
   </select>
   <div id="friendSelector" style="display: none;">
     <label style="color: #ccc;" for="friend">called:</label>
 
-    <select name="friend">
+    <select name="friend" id="friendSelectorChild">
       <option value="bob">Bob</option>
     </select>
   </div>
@@ -103,7 +103,9 @@
       parent.parent.querySelector("#stations").src = `/user?username=${message.senderUsername}`
     }
     function loadMessages() {
-      fetch("/chatMessages")
+      let srcval=document.querySelector("#chatsrc").value
+
+      fetch(`/chatMessages?source=${srcval=="current"?srcval:srcval+"&friendId="+document.querySelector("#friendSelectorChild").value}`)
         .then((response) => response.json())
         .then((data) => {
           const chatbox = document.getElementById("chatbox");

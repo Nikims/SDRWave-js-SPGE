@@ -743,7 +743,8 @@ router.post("/changeTunedFreq", async (req, res) => {
 //   }
 // });
 router.post("/chatMessage", async (req, res) => {
-  const { content } = req.body;
+  const { content, sendTo } = req.body;
+  
   usr = await User.findByPk(req.session.userId);
   if (usr && usr.tunedStationID) {
     radioStationID = usr.tunedStationID;
@@ -765,8 +766,28 @@ router.post("/chatMessage", async (req, res) => {
 
 router.get("/chatMessages", async (req, res) => {
   try {
-    const user = await User.findByPk(req.session.userId);
+    const user=res.locals.user
+    const sourcequery=req.params.source
+    if(!sourcequery){
+      res.send(400)
+    }
+    if (sourcequery == "friends") {
+      if (req.params.friendId) {
+        frId = req.params.friendId;
+       const chatMessages = await privateMessage.findAll({
+          where: {
+            [Op.or]: [
+              { user1: frId, user2: user.id },
+              { user2: usechatMessagesr.id, user2: frId },
+            ],
+          },
+          order: [["timestamp", "DESC"]],
+          limit: 100,
+        });
+        return res.json({ chatMessages });
 
+      }
+    }
     if (!user || !user.tunedStationID) {
       return res
         .status(404)
