@@ -1,6 +1,6 @@
 const sequelize = require("../db/db");
 const DataTypes = require("sequelize/lib/data-types");
-
+const User= require("./User")
 const privateMessage = sequelize.define(
   "privateMessage",
   {
@@ -28,11 +28,7 @@ const privateMessage = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,  
     },
-    senderID: {
-      type: DataTypes.UUID,  
-      allowNull: false,
-    },
-    privateMessageContent: {
+    messageContent: {
       type: DataTypes.TEXT, 
       allowNull: false,
     },
@@ -45,6 +41,9 @@ const privateMessage = sequelize.define(
   {
   },
 );
-
+privateMessage.beforeCreate(async (msg,options)=>{
+  msg.senderUsername = User.findByPk(msg.user1)
+})
 
 privateMessage.sync();
+module.exports=privateMessage

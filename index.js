@@ -8,6 +8,7 @@ let Song = require("./models/Song");
 let Friendship = require("./models/Friendship");
 let Playlist = require("./models/Playlist");
 let Thread = require("./models/Thread");
+let privateMessage = require("./models/privateMessage");
 
 const DataTypes = require("sequelize/lib/data-types");
 const { Op, json } = require("sequelize");
@@ -103,9 +104,10 @@ app.use(express.static(__dirname + "/public"));
 app.use("/songs", express.static(__dirname + "songs"));
 
 const session = require("express-session");
-
+privateMessage.sync()
 const bodyParser = require("body-parser");
 const e = require("express");
+const { send } = require("node:process");
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 app.use(express.urlencoded({ extended: true }));
@@ -338,7 +340,7 @@ router.get("/register", (req, res) => {
   res.render("loginView", { newUser: 1 });
 });
 router.get("/player", async (req, res) => {
-  let user = await User.findByPk(req.session.userId);
+  let user = res.locals.user
   if (user && user.tunedStationID) {
     let radioHostname = (await RadioStation.findByPk(user.tunedStationID))
       .hostSource;
@@ -347,27 +349,44 @@ router.get("/player", async (req, res) => {
     res.render("player", { host: 0 });
   }
 });
-router.get("/chat", async (req, res) => {
-  res.sendFile(__dirname + "/views/chatbox.html");
+
+router.get("/stationsPage", (req, res) => {
+  res.sendFile(__dirname + "/views/Stations.html");
 });
 router.get("/home", async (req, res) => {
-  let user = await User.findByPk(req.session.userId);
+  let user = await User.findByPk(req.session.userId)
   if (!user || !user.username) {
     console.log(req.session.userId);
     user = { username: "Guest" };
   }
   res.render("home", { username: user.username });
 });
-router.get("/stationsPage", (req, res) => {
-  res.sendFile(__dirname + "/views/Stations.html");
-});
-
 router.use(async (req, res, next) => {
-  user = await User.findByPk(req.session.userId);
+  user =  await User.findByPk(req.session.userId)
   if (!user) return res.send(403);
   res.locals.user = user;
   next();
 });
+
+router.get("/chat", async (req, res) => {
+  let user = res.locals.user
+ friends=await Friendship.findAll({where:{[Op.or]:[{user1:user.id},{user2:user.id}]}})
+ friendUsernames=[]
+ for(i of friends){
+  if(i.user1!=user.id){
+    us=await User.findByPk(i.user1)
+    friendUsernames.push(us.username)
+  }else{
+    us=await User.findByPk(i.user2)
+    friendUsernames.push(us.username)
+
+  }
+ }
+ console.log(friendUsernames)
+  res.render("chatbox",{friends,myId:user.id,friendUsernames})
+});
+
+
 router.get("/getRadioStations", async (req, res) => {
   realRadios = await RadioStation.findAll({ where: {} });
   vRadios = await vStation.findAll({ where: {} });
@@ -743,51 +762,75 @@ router.post("/changeTunedFreq", async (req, res) => {
 //   }
 // });
 router.post("/chatMessage", async (req, res) => {
-  const { content, sendTo } = req.body;
+  const { content, sendTo, source } = req.body;
   
-  usr = await User.findByPk(req.session.userId);
-  if (usr && usr.tunedStationID) {
-    radioStationID = usr.tunedStationID;
+  const user = await User.findByPk(req.session.userId);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
 
-    const newMessage = await Message.create({
-      senderID: req.session.userId,
+  if (source === "friends") {
+    const friend = await User.findOne({where:{username:sendTo}});
+    if (!friend) {
+      return res.status(404).json({ error: "Friend not found." });
+    }
+
+    const newPrivateMessage = await privateMessage.create({
+      user1: req.session.userId,
+      user2: friend.id,
+      sentBy:1,
       messageContent: content,
       timestamp: new Date(),
-      radioStationID: radioStationID,
-      senderUsername: usr.username,
     });
 
     return res.json({
-      message: "Message sent successfully",
-      message: newMessage,
+      message: "Private message sent successfully",
+      message: newPrivateMessage,
+    });
+  } else {
+    if (!user.tunedStationID) {
+      return res.status(404).json({ error: "User is not tuned to any radio station." });
+    }
+
+    const newPublicMessage = await Message.create({
+      senderID: req.session.userId,
+      messageContent: content,
+      timestamp: new Date(),
+      radioStationID: user.tunedStationID,
+      senderUsername: user.username,
+    });
+
+    return res.json({
+      message: "Public message sent successfully",
+      message: newPublicMessage,
     });
   }
 });
 
+
 router.get("/chatMessages", async (req, res) => {
   try {
     const user=res.locals.user
-    const sourcequery=req.params.source
+    const sourcequery=req.query.source
+    console.log(sourcequery)
     if(!sourcequery){
-      res.send(400)
+      return res.send(400)
     }
     if (sourcequery == "friends") {
-      if (req.params.friendId) {
-        frId = req.params.friendId;
+      if (req.query.friendId) {
+        frId = req.query.friendId;
        const chatMessages = await privateMessage.findAll({
-          where: {
-            [Op.or]: [
-              { user1: frId, user2: user.id },
-              { user2: usechatMessagesr.id, user2: frId },
-            ],
-          },
-          order: [["timestamp", "DESC"]],
-          limit: 100,
-        });
+         where: {
+           user1: frId,
+           user2: user.id,
+         },
+         order: [["timestamp", "DESC"]],
+         limit: 100,
+       });
         return res.json({ chatMessages });
 
       }
-    }
+    }else{
     if (!user || !user.tunedStationID) {
       return res
         .status(404)
@@ -805,10 +848,12 @@ router.get("/chatMessages", async (req, res) => {
 
       return res.json({ chatMessages });
     }
+  }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
+  
 });
 
 router.post("/thread", async (req, res) => {

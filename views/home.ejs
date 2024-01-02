@@ -143,8 +143,8 @@
     document.querySelector("#stations").src = "/myFriends"
 
   }
-  logout = () => {
-    fetch('/logout', {
+  logout =async () => {
+   await fetch('/logout', {
       method: 'POST'
     })
     location.reload()

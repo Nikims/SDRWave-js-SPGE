@@ -60,7 +60,12 @@
     <label style="color: #ccc;" for="friend">called:</label>
 
     <select name="friend" id="friendSelectorChild">
-      <option value="bob">Bob</option>
+
+      
+
+      <% for(i of friends){%>
+        <option value="<%-(friendUsernames[friends.indexOf(i)])%>"><%-(friendUsernames[friends.indexOf(i)])%></option>
+        <%}%>
     </select>
   </div>
  
@@ -79,12 +84,13 @@
       friendSelectorDisplay= document.querySelector("#friendSelector")
       console.log(e.target.value)
 
-      if(e.target.value=="Friends"){
+      if(e.target.value=="friends"){
        friendSelectorDisplay.style.display="block"
         console.log(friendSelectorDisplay)
       }else{
        friendSelectorDisplay.style.display="none"
       }
+      loadMessages()
     })
     // Function to load previous messages
     const messageInput = document.getElementById("messageInput");
@@ -152,12 +158,13 @@
     function sendMessage() {
 
       const content = messageInput.value;
+      
       fetch("/chatMessage", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content,source:document.querySelector("#chatsrc").value, sendTo:document.querySelector("#friendSelectorChild").value }),
       })
         .then((response) => response.json())
         .then((data) => {
