@@ -461,6 +461,16 @@ router.get("/user", async (req, res) => {
     },
   });
 
+  if(!user){
+    userthreads = await Thread.findAll({ where: { postedOn: selfUser.id } })
+
+    return res.render("profile", {
+
+    user: selfUser,
+    selfUser: selfUser,
+    threads: userthreads,
+  });
+}
   console.log(user + "\n\n\n\n\n");
   userthreads = await Thread.findAll({ where: { postedOn: user.id } });
   res.render("profile", {
@@ -819,11 +829,14 @@ router.get("/chatMessages", async (req, res) => {
     if (sourcequery == "friends") {
       if (req.query.friendId) {
         frId = req.query.friendId;
-       const chatMessages = await privateMessage.findAll({
-         where: {
-           user1: frId,
-           user2: user.id,
-         },
+       let friend= await User.findOne({where:{username:frId}})
+        const chatMessages = await privateMessage.findAll({
+          where: {
+            [Op.or]: [
+              { user1: friend.id, user2: user.id },
+              { user2: user.id, user2: friend.id },
+            ],
+          },
          order: [["timestamp", "DESC"]],
          limit: 100,
        });

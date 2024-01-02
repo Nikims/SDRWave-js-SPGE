@@ -124,8 +124,8 @@
             submsg=document.createElement("div")
 
             usrname = document.createElement("span")
-            usrname.innerText = message.senderUsername
-            usrname.dataset.username = message.senderUsername
+            usrname.innerText = message.user1 != "<%-myId%>"?document.querySelector("#friendSelectorChild").value:"me"
+            usrname.dataset.username =  usrname.innerText
             submsg.appendChild(usrname)
             content = document.createElement("span")
             content.innerText = ": " + message.messageContent
