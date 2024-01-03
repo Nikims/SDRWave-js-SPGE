@@ -111,11 +111,13 @@
         <%}%>
     <span style="display: block;"></span>
     <% for(i of JSON.parse(friends)){%>
-        <div class="friendContainer">
-        <img width="100px" height="100px" class="pfpThumb"
+        <div class="friendContainer" style="background-color: rgb(64, 69, 73);">
+        <img onclick="window.location.href='/user?username=<%-i.username%>'" width="100px" height="100px" class="pfpThumb"
         src="/<%-i.id%>/pfp.png" onerror="this.src='/default.jpg';">
-        <p>eloo <%-i.username%></p>
+        <p><%-i.username%></p>
+      
     </div>
+    <hr>
         <%}%>
     <script>
         document.querySelectorAll(".acceptRequest").forEach((e)=>{

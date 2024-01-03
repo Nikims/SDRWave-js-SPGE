@@ -77,6 +77,8 @@
         border-radius: 50%;
       }
       audio{
+        width: min-content;
+        height: min-content;
       border:3px solid chartreuse;
               border-radius: 50px;
         background: chartreuse;
@@ -92,7 +94,6 @@
     box-shadow: -5px 5px 1px green
       }
       #songDiscoverBtn:hover{
-        position: relative;
         background: chartreuse;
     color: black;
     border: none;
@@ -318,7 +319,7 @@
       document.getElementById(`songName`).innerText=data.artist+':'+data.title
     })">Discover song</button>
 
-    <iframe style="border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
+    <iframe style=" margin-top:40px;border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
     <!-- <div>
       <h2>Log</h2>
       <button id="log-refresh" onclick="updateLog();">Refresh</button>

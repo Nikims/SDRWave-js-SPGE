@@ -124,7 +124,7 @@
             submsg=document.createElement("div")
 
             usrname = document.createElement("span")
-            usrname.innerText = message.user1 != "<%-myId%>"?document.querySelector("#friendSelectorChild").value:"me"
+            usrname.innerText = srcval=="current"?message.senderUsername:message.user1 != "<%-myId%>"?document.querySelector("#friendSelectorChild").value:"me"
             usrname.dataset.username =  usrname.innerText
             submsg.appendChild(usrname)
             content = document.createElement("span")
@@ -156,9 +156,11 @@
     }))
     // Function to send a message
     function sendMessage() {
-
-      const content = messageInput.value;
       
+      const content = messageInput.value;
+      if(!content){
+        return
+      }
       fetch("/chatMessage", {
         method: "POST",
         headers: {

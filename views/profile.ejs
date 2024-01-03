@@ -210,7 +210,7 @@
         </h2>
         <span style="display: inline-flex;align-items: center;">
             <% if (user.username!= selfUser.username) { %>
-            <button id="followBtn">Befriend</button>
+            <button onclick="this" id="followBtn">Befriend</button>
             <%}%>
             <p>9999 friends</p>
         </span>
@@ -223,7 +223,7 @@
         <div id="threads">
             <% threads.reverse().forEach(thread => { %>
             <div class="thread">
-                <img width="50px" height="50px" class="pfpSmall" src="/<%- thread.postedBy %>/pfp.png"   onerror="this.src='/default.jpg';">
+                <img onclick="window.location.href='/user?username=<%-thread.posterUsername%>'" width="50px" height="50px" class="pfpSmall" src="/<%- thread.postedBy %>/pfp.png"   onerror="this.src='/default.jpg';">
                 <div class="threadContent">
                     <p style="font-weight:bold;"><%- thread.posterUsername %></p>
                     <p><%- thread.content %></p>
