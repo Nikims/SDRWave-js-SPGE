@@ -22,6 +22,11 @@ const User = sequelize.define(
       unique: false,
       defaultValue: false,
     },
+    addedPlaylists:{
+      type:DataTypes.JSON,
+      defaultValue:[],
+      allowNull:false,
+    },
     bio:{
       type: DataTypes.STRING,
       allowNull: true,

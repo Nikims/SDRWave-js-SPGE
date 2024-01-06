@@ -81,14 +81,19 @@
   </div>
   <script>
     document.querySelector("#chatsrc").addEventListener("change",async(e)=>{
+      
       friendSelectorDisplay= document.querySelector("#friendSelector")
       console.log(e.target.value)
 
       if(e.target.value=="friends"){
        friendSelectorDisplay.style.display="block"
         console.log(friendSelectorDisplay)
+        if( friendSelectorDisplay.querySelectorAll("select").length==0
+){
+  location.reload()
+          
+        }
       }else{
-       friendSelectorDisplay.style.display="none"
       }
       loadMessages()
     })

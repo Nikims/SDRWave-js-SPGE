@@ -868,7 +868,11 @@ router.get("/chatMessages", async (req, res) => {
   }
   
 });
-
+router.get("/myPlaylists",async (req,res )=>{
+  user = res.locals.user
+  playlists=user.addedPlaylists
+  res.render("playlistBrowser",{playlists})
+})
 router.post("/thread", async (req, res) => {
   newthread = await Thread.create({
     postedOn: req.body.username,

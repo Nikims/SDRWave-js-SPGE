@@ -68,9 +68,8 @@
         flex-direction: row;
         color: bisque;
         padding: 10px;
-        position: sticky;
-        top: 0;
-        width: 100wh;
+        width: 100%;
+        max-height: 100px;
         margin-bottom: 6px;
         background-color: #1e1e1e;
         border-style: solid;
@@ -156,6 +155,13 @@
       window.location.href = "/login";
   <% } %>
 }
+renderPlaylists = ()=>{
+  <% if (username !== "Guest") { %>
+      document.querySelector("#stations").src = `/myPlaylists`;
+  <% } else { %>
+      window.location.href = "/login";
+  <% } %>
+}
     </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
@@ -176,7 +182,7 @@
 
             <a style="font-weight: 600;" href="/login"> Log in</a>
          <% } %> 
-         <li onclick="playlistImport()">My playlists</li>
+         <li onclick="renderPlaylists()">My playlists</li>
 
           <li onclick="playlistImport()">Import Youtube Playlist</li>
           <li onclick="renderStations()">List of stations</li>
