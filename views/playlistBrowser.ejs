@@ -33,10 +33,13 @@
                 transform: rotate(360deg);
             }
         }
+
         @keyframes fadeout {
-            0% {
+
+            1% {
                 opacity: 1;
             }
+
             70% {
                 opacity: 0.8;
             }
@@ -60,7 +63,7 @@
             }
         }
 
-     
+
 
         .playlistpic {
             border-radius: 100%;
@@ -69,10 +72,12 @@
             max-width: 80%;
             border: 4px solid rgb(34, 34, 34);
         }
+
         .clicked {
-            animation: spin 5s linear infinite, click ease-in-out 0.4s!important;
-            
-        }   
+            animation: click ease-in-out 0.3s !important;
+
+        }
+
         .playlistpic:hover {
             animation-play-state: running;
         }
@@ -80,7 +85,7 @@
         .vinyl-hole {
             position: relative;
             top: -45%;
-            z-index: 200;
+            z-index: 2;
             width: 20px;
             height: 20px;
             background-color: black;
@@ -88,15 +93,17 @@
         }
 
         .playlistpic>h8 {}
-        .modal-content{
-            animation: fadeout 1s ease-out;
+
+        .modal-content {
+            z-index: 99;
+            animation: fadeout 10s ease-out;
             background-color: rgb(112, 255, 112);
-            position: absolute;
+            position: fixed;
             width: fit-content;
-            margin-left: auto; 
-            margin-right: auto; 
+            margin-left: auto;
+            margin-right: auto;
             padding: 3px;
-            top:0%;
+            top: 0%;
             border-radius: 3px;
         }
     </style>
@@ -108,7 +115,8 @@
         <% for(i of playlists){%>
         <div class="playlistCnt">
             <div class="picCont" style="display: flex; flex-direction: column;align-items: center;                ">
-                <img src="https://picsum.photos/200" class="playlistpic">
+                <img src="https://picsum.photos/200" class="playlistpic" data-added="false"
+                    data-index=<%-playlists.indexOf(i)%>>
                 <div class="vinyl-hole"></div>
                 <hr
                     style="position: relative; top:-30%; left:20%;width: 70px; height:3px;background-color: black; transform: rotate(30deg);">
@@ -138,33 +146,33 @@
                 element.addEventListener(events[i], listener, false);
             }
         }
-        setInterval(()=>{
-                    for(i of modals){
-                       
-                       console.log(window.getComputedStyle(i).animationPlayState)
-                        if(window.getComputedStyle(i).animationPlayState=="running"){
-                            i.remove()
-                        }
+        setInterval(() => {
 
-                    }
-                },1000)
-        modals=[]
+            lol = document.querySelector(".modal-content")
+            if (lol) lol.remove()
+
+
+
+        }, 1000)
         for (i of document.querySelectorAll(".playlistpic")) {
             i.addEventListener("click", (e) => {
-                modal=document.createElement("div")
+                modal = document.createElement("div")
                 modal.classList.add("modal-content")
-                modal.innerText="hi"
+                modal.style.top = `${document.querySelectorAll(".modal-content").length * 20}px`
+                console.log(e.target.parentElement.parentElement)
+                e.target.dataset.added == "true" ? e.target.dataset.added = "false" : e.target.dataset.added = "true"
+                e.target.dataset.added == "true" ? (modal.innerText = `Added ${e.target.parentElement.parentElement.querySelector("h2").innerText} to playlists`) : modal.innerText = `Removed  ${e.target.parentElement.parentElement.querySelector("h2").innerText} from playlists`
+
                 document.body.appendChild(modal)
-                modals.push(modal)
 
                 e.target.classList.add("clicked")
-                setTimeout(()=>{
-                e.target.classList.remove("clicked")
+                setTimeout(() => {
+                    e.target.classList.remove("clicked")
 
-            },500)
+                }, 1000)
             })
-          
-          
+
+
         }
     </script>
 </body>
