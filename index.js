@@ -609,11 +609,18 @@ router.get("/myFriends", async (req, res) => {
 
 router.get("/topHits", async (req, res) => {
   user = await User.findOne({ where: { id: req.session.userId } });
-
-  res.render("topHits", { likedOnly: false, user: user });
+  playlists=user.addedPlaylists
+  playlistsSerialized=[{name:"hello"}]
+  console.log(playlists)
+  for(i of playlists){
+    cur=await Playlist.findByPk(i)
+    playlistsSerialized.push(cur)
+  }
+  res.render("topHits", { likedOnly: false, user: user, playlists:playlistsSerialized });
 });
-router.get("/likedSongs", async (req, res) => {
-  res.render("topHits", { likedOnly: true, user: res.locals.user });
+router.get("/likedSongs", async (req, res) => { playlists=user.addedPlaylists
+
+  res.render("topHits", { likedOnly: true, user: res.locals.user, playlists });
 });
 router.get("/getSongs", async (req, res) => {
   user = await User.findByPk(req.session.userId);
