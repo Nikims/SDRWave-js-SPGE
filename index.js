@@ -20,6 +20,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const GoogleApiKey = process.env.APIGOOGLE;
 const multer = require("multer");
+const ytdl = require('ytdl-core'); 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const path = require("path");
@@ -149,7 +150,7 @@ async function fetchYouTubePlaylist(playlistId) {
         discoveredLiveCount: 0,
         frequencyDiscoveredOn: null,
         RadioStationDiscoveredOn: null, // Example UUID
-        youtubeId: i.id,
+        youtubeId: i.snippet.resourceId.videoId,
       });
 
       songs.push(lol.id);
@@ -167,6 +168,17 @@ async function fetchYouTubePlaylist(playlistId) {
     console.error("Error:", error.message);
   }
 }
+
+app.get('/streamAudio', (req, res) => {
+  try{
+  const url = req.query.url; // The YouTube video URL
+  ytdl(url, { filter: 'audioonly' }).pipe(res);
+  }catch(e){
+    res.send(400)
+    //handle this better lol
+  }
+});
+
 
 router.post("/addPlaylist", async (req, res) => {
   res.send(fetchYouTubePlaylist(req.body));
@@ -875,11 +887,55 @@ router.get("/chatMessages", async (req, res) => {
   }
   
 });
+
+
+
+
+
 router.get("/myPlaylists",async (req,res )=>{
   user = res.locals.user
   playlists=user.addedPlaylists
-  res.render("playlistBrowser",{playlists})
+  result=[]
+  for(i of playlists){
+    temp = await Playlist.findByPk(i)
+    if(temp) result.push(temp)
+  }
+  console.log(playlists)
+  res.render("playlistBrowser",{playlists:result})
 })
+router.post("/addToPlaylist", async (req, res) => {
+  try {
+    const user = res.locals.user;
+    const parsedBody = JSON.parse(req.body)
+    const playlistName = parsedBody.playlistName;
+    const songId = parsedBody.songId;
+
+    let playlist = await Playlist.findOne({ where: { name: playlistName, ownerId: user.id } });
+
+    if (!playlist) {
+      playlist = await Playlist.create({
+        ownerId: user.id,
+        songs: [songId],
+        name: playlistName
+      });
+
+      user.addedPlaylists = [...user.addedPlaylists, playlist.id];
+    } else {
+      playlist.songs = [...playlist.songs, songId];
+    }
+
+    // Save changes
+    await playlist.save();
+    await user.save();
+
+    // Send success status
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
+  }
+});
+
 router.post("/thread", async (req, res) => {
   newthread = await Thread.create({
     postedOn: req.body.username,

@@ -12,6 +12,10 @@ const vStation = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    currentIndex:{
+      type:DataTypes.INTEGER,
+      defaultValue:0,
+    },
     isBusy: {
       type: DataTypes.BOOLEAN,
       defaultValue: 1,

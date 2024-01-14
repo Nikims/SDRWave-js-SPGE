@@ -75,7 +75,7 @@
    height: 0px;
    border-style: solid;
    border-width: 0 10px 20px 10px;
-   border-color: transparent transparent white transparent;
+   border-color: transparent transparent white transparent!important;
    transform: rotate(90deg);
    margin-left: 10px;
    transition: 0.2s;
@@ -154,16 +154,20 @@
     fill: rgb(255, 46, 46);
 
   }
-  .focused{
+  /* .focused{
     background-color: #7fffd4;
     transition: 0.3s;
-  }
+  } */
   .submitplaylistbtn{
     color: greenyellow;
     background-color:  #272727;
     width: 50%;
     border: 2px solid black;
+    
 
+  }
+  .newinputbox{
+    transition: 0.3s;
   }
 </style>
 
@@ -273,10 +277,17 @@
                         search_query: i.name+"-"+i.artist,
           };
           // console.log(<%-user%>)
-             
+            
             query='https://www.youtube.com/results?'+new URLSearchParams(data)
+            let clr="red"
+            if(i.youtubeId&& i.youtubeId.length>0){
+              
+            query=i.youtubeId
+              clr="purple"
+            }
 
             songCont = document.createElement("div")
+            songCont.dataset.query=query
             songCont.classList.add("songContainer")
             songCont.dataset.songId=i.id
             songCont.innerHTML = `<div class="subCont"><p style="max-width:16ch;max-height:100px;overflow:clip; margin-right:40px;">${i.name + " - " + i.artist}</p>
@@ -289,25 +300,56 @@
   <rect width="208" height="32" x="256" y="152" fill="var(--ci-primary-color, #255255255)" class="ci-primary"/>
   <rect width="288" height="32" x="176" y="256" fill="var(--ci-primary-color, #255255255)" class="ci-primary"/>
   <rect width="288" height="32" x="176" y="360" fill="var(--ci-primary-color, #255255255)" class="ci-primary"/>
-  <polygon fill="var(--ci-primary-color, #255255255)" points="192 152 128 152 128 88 96 88 96 152 32 152 32 184 96 184 96 248 128 248 128 184 192 184 192 152" class="ci-primary"/>
-</svg>
-        <a href="${query}" class="triangle" target="_parent"></a>
-   
+  <polygon fill="var(--ci-primary-color, gray)" points="192 152 128 152 128 88 96 88 96 152 32 152 32 184 96 184 96 248 128 248 128 184 192 184 192 152" class="ci-primary"/>
+</svg>`+
+        (clr=="purple"?(`<div class="triangle"> </div>`):
+        (`<a href="${query}" class="triangle" target="_parent"></a>`))+
+   `
   </div>
       `
+      if(clr=="purple"){
+        // songCont.querySelector(".triangle").style.fill="purple"
+songCont.querySelector(".triangle").style.borderBottomColor = "purple";
+        songCont.querySelector(".triangle").addEventListener("click",(e)=>{
+          console.log("/streamAudio?url="+query)
+          window.top[1].document.querySelector("#audioElement").src="/streamAudio?url="+e.target.parentElement.parentElement.dataset.query
+        })
+      }
       playlists=(<%-JSON.stringify(playlists)%>)
-   
+      //func stolen from stackoverflow
+      function is_valid_datalist_value(idDataList, inputValue) {
+  var option = document.querySelector("#" + idDataList + " option[value='" + inputValue + "']");
+  if (option != null) {
+    return option.value.length > 0;
+  }
+  return false;
+}
 
       songCont.querySelector(".addToPlaylist").style.width="40px"
       songCont.querySelector(".addToPlaylist").style.heigth="40px"
 
               songCont.querySelector(".addToPlaylist").addEventListener("click",(e)=>{
                 newPlaylistinputbox=document.createElement("input")
-                newPlaylistinputbox.class="newinputbox"
+                newPlaylistinputbox.classList.add("newinputbox")
                 newPlaylistinputbox.placeholder="Enter playlist name"
                 submitbtn=document.createElement("button")
                 submitbtn.innerHTML="Add to list"
                 submitbtn.classList.add("submitplaylistbtn")
+                newPlaylistinputbox.addEventListener("input",async(e)=>{
+
+                    console.log(e.target.value)
+                    if(!is_valid_datalist_value("savedLists",e.target.value)){
+                      e.target.style.backgroundColor="yellow"
+                    }else{
+                      e.target.style.backgroundColor="#21ed58"
+
+                    }
+                  })
+                submitbtn.addEventListener("click",async (e)=>{
+                  res = await fetch("/addToPlaylist",{method:"POST",body:JSON.stringify({songId:e.target.parentElement.dataset.songId, playlistName:newPlaylistinputbox.value})})
+
+                  console.log(e.target.parentElement.dataset.songId)
+                })
                 newPlaylistinputbox.setAttribute("list","savedLists")
                 label = document.createElement("label")
                
@@ -325,18 +367,8 @@
                 divctn.innerHTML=""
 
                 divctn.parentElement.appendChild(newPlaylistinputbox)
-                divctn.parentElement.appendChild(submitbtn)
-
-                newPlaylistinputbox.addEventListener("focus",(e)=>{
-                  e.target.classList.add("focused")
-                })
-                newPlaylistinputbox.addEventListener("focusout",(e)=>{
-                  e.target.classList.remove("focused")
-                })
-               
-          
-              
-                divctn.parentElement.parentElement.classList.add("grow")
+                divctn.parentElement.appendChild(submitbtn) 
+                divctn.parentElement.classList.add("grow")
                
                 console.log( e.target.parentElement)
               }) 
