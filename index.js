@@ -628,14 +628,16 @@ router.get("/topHits", async (req, res) => {
     cur=await Playlist.findByPk(i)
     playlistsSerialized.push(cur)
   }
-  res.render("topHits", { likedOnly: false, user: user, playlists:playlistsSerialized });
+  //likedOnly
+  res.render("topHits", { mode: "all", user: user, playlists:playlistsSerialized ,playlistId:""});
 });
 router.get("/likedSongs", async (req, res) => { playlists=user.addedPlaylists
 
-  res.render("topHits", { likedOnly: true, user: res.locals.user, playlists });
+  res.render("topHits", { mode: "likedOnly", user: res.locals.user, playlists ,playlistId:"" });
 });
 router.get("/getSongs", async (req, res) => {
-  user = await User.findByPk(req.session.userId);
+  usr = res.locals.user
+ 
   try {
     usr;
     console.log("usr found");
@@ -675,10 +677,34 @@ router.post("/getLikedSongs", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+router.get("/playlist", async (req, res) => {
+  if(req.query.id){
+    let pl = await Playlist.findByPk(req.query.id);
+
+    if(pl){
+      res.render("topHits", { mode: "playlist", user: res.locals.user, playlistId: req.query.id });
+    }
+  }
+});
 
 router.post("/getSongs", async (req, res) => {
-  user = await User.findByPk(req.session.userId);
-
+  
+  user = res.locals.user
+  if(req.query.playlistId){
+    console.log("\n\n\n\n\n\n\n\n"+JSON.stringify(req.query))
+    let pl = await Playlist.findByPk(req.query.playlistId.slice(1,req.query.playlistId.length-1));
+    console.log("\n\n\n\n\n\n\n\n\n\n\n\n"+(req.query.playlistId)+"\n\n\n!!!!!!!!!!!!!!!!!!")
+    if(pl){
+    console.log(pl.songs+"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+    let songs = await Song.findAll({
+      where: {
+        id: pl.songs 
+      }
+    });
+    return res.send(songs)
+  }
+  return res.send(500)
+  }
   console.log(req.body);
   const { filterby, radiosource, reversefilterbtn } = JSON.parse(req.body);
   let orderBy;

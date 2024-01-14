@@ -119,6 +119,30 @@
         border-style: solid;
         border-width: 2px;
       }   
+      #stationCreateModal{
+        background-color: rgb(46, 46, 46);
+        border:5px solid #11031a ;
+        position: fixed;
+        width: 25%;
+        height: 80%;
+        z-index: 5;
+        left: 37.5%;
+        border-radius: 2%;
+        display: none;
+        /* transform: translateX(-50%); */
+        top: 5%;
+        transform: translateY(5%);
+      }
+      #stationformbox{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+      }
+      #stationformbox label{
+        color: #b3b3b3;
+        font-size: large;
+      }
     </style>
     <script>
 
@@ -162,9 +186,25 @@ renderPlaylists = ()=>{
       window.location.href = "/login";
   <% } %>
 }
+toggleStationCreateModal=()=>{
+ dis= document.querySelector("#stationCreateModal").style.display
+ dis=="block"?document.querySelector("#stationCreateModal").style.display="none":document.querySelector("#stationCreateModal").style.display="block"
+console.log(dis)
+}
     </script>
   </head>
   <body style="background-color: rgb(78, 78, 78)">
+    <div id="stationCreateModal">
+      <form id="stationformbox" style="padding:10%">
+        <label>Enter station name</label>
+        <input>
+        <label>Enter station description</label>
+        <input>
+        <input type="checkbox" />
+        <label>Enter station host adress/playlist link</label>
+        <input>
+      </form>
+    </div>
     <div id="header-cnt">
       <img src="/OIG.png" style="max-width: 100px" />
       <h1>SDRWave</h1>
@@ -185,6 +225,7 @@ renderPlaylists = ()=>{
          <li onclick="renderPlaylists()">My playlists</li>
 
           <li onclick="playlistImport()">Import Youtube Playlist</li>
+          <li onclick='toggleStationCreateModal()'>Create station</li>
           <li onclick="renderStations()">List of stations</li>
           <% if(username!="Guest") {%> 
           <li onclick="renderFriends()">Friends</li>

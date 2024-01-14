@@ -253,8 +253,18 @@
 
 
     }
-    method= <%-likedOnly%>;
-    method=method?"/getLikedSongs":"/getSongs"
+    method= "<%-mode%>"
+    console.log(method)
+    switch(method){
+      case "likedOnly":
+        method="/getLikedSongs"
+        break;
+      case "all":
+        method="/getSongs"
+        break;
+      case "playlist":
+        method='/getSongs?playlistId="<%-playlistId%>"'
+    }
     userId=<%-JSON.stringify(user)%>
     console.log(userId.id)
     function performSongQuery() {

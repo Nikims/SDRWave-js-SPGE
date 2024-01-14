@@ -114,7 +114,7 @@
     <%playlists.length==0?playlists=[{name:"Example bro"},{name:"Example bro"},{name:"Example bro"},{name:"Example bro"},{name:"Example bro"},{name:"Example bro"}]:[]%>
     <div id="playlistsCnt" style="display: flex; flex-wrap: wrap; flex-direction: row;">
         <% for(i of playlists){%>
-        <div class="playlistCnt">
+        <div class="playlistCnt" data-id=<%-i.id%>>
             <div class="picCont" style="display: flex; flex-direction: column;align-items: center;                ">
                 <img src="https://picsum.photos/200" class="playlistpic" data-added="false"
                     data-index=<%-playlists.indexOf(i)%>>
@@ -160,20 +160,21 @@
         }, 1000)
         for (i of document.querySelectorAll(".playlistpic")) {
             i.addEventListener("click", (e) => {
-                modal = document.createElement("div")
-                modal.classList.add("modal-content")
-                modal.style.top = `${document.querySelectorAll(".modal-content").length * 20}px`
-                console.log(e.target.parentElement.parentElement)
-                e.target.dataset.added == "true" ? e.target.dataset.added = "false" : e.target.dataset.added = "true"
-                e.target.dataset.added == "true" ? (modal.innerText = `Added ${e.target.parentElement.parentElement.querySelector("h2").innerText} to playlists`) : modal.innerText = `Removed  ${e.target.parentElement.parentElement.querySelector("h2").innerText} from playlists`
+                window.location.href="/playlist?id="+e.target.parentElement.parentElement.dataset.id
+                // modal = document.createElement("div")
+                // modal.classList.add("modal-content")
+                // modal.style.top = `${document.querySelectorAll(".modal-content").length * 20}px`
+                // console.log(e.target.parentElement.parentElement)
+                // e.target.dataset.added == "true" ? e.target.dataset.added = "false" : e.target.dataset.added = "true"
+                // e.target.dataset.added == "true" ? (modal.innerText = `Added ${e.target.parentElement.parentElement.querySelector("h2").innerText} to playlists`) : modal.innerText = `Removed  ${e.target.parentElement.parentElement.querySelector("h2").innerText} from playlists`
 
-                document.body.appendChild(modal)
+                // document.body.appendChild(modal)
 
-                e.target.classList.add("clicked")
-                setTimeout(() => {
-                    e.target.classList.remove("clicked")
+                // e.target.classList.add("clicked")
+                // setTimeout(() => {
+                //     e.target.classList.remove("clicked")
 
-                }, 1000)
+                // }, 1000)
             })
 
 
