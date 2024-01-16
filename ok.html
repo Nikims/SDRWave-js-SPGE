@@ -206,13 +206,13 @@
         e.preventDefault();
 
         const content = chatMessageContent.value;
-
+        const sendTo=null
         fetch(`${apiUrl}/chatMessage`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content,sendTo }),
         })
           .then((response) => response.json())
           .then((data) => {

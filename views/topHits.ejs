@@ -159,7 +159,7 @@
     transition: 0.3s;
   } */
   .submitplaylistbtn{
-    color: greenyellow;
+    color: rgb(255, 255, 255);
     background-color:  #272727;
     width: 50%;
     border: 2px solid black;
@@ -206,11 +206,15 @@
       </select>
       <button id="reversefilterbtn" onclick="document.querySelector('#reversefilterbtn').dataset.pressed*=-1"
         type="button" data-pressed="1">Reverse filter order</button>
+        <input id="songsearch">
       <input type="submit" id="submitquerybtn" value="Submit"></input>
     </form>
   </div>
+
+  <div id="allSongs"></div>
   <hr style="margin-bottom: 20%;visibility: hidden;">
   <script>
+  
     let audio=0;
     function playSound(soundSrc) {
       if(audio){
@@ -281,7 +285,10 @@
           console.log(data)
           // Use the data here
           songs = data;
+
           for (i of songs) {
+            let valsearch=document.querySelector("#songsearch").value
+            if(valsearch.length==0 || i.name.toUpperCase().includes(valsearch.toUpperCase())){
             console.log(i.sampleId)
                       const data = {
                         search_query: i.name+"-"+i.artist,
@@ -323,6 +330,7 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
         songCont.querySelector(".triangle").addEventListener("click",(e)=>{
           console.log("/streamAudio?url="+query)
           window.top[1].document.querySelector("#audioElement").src="/streamAudio?url="+e.target.parentElement.parentElement.dataset.query
+         window.top[1].document.querySelector("#songDiscoverBtn").remove()
         })
       }
       playlists=(<%-JSON.stringify(playlists)%>)
@@ -356,10 +364,15 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
                     }
                   })
                 submitbtn.addEventListener("click",async (e)=>{
+                  if(newPlaylistinputbox.value.length>0){
                   res = await fetch("/addToPlaylist",{method:"POST",body:JSON.stringify({songId:e.target.parentElement.dataset.songId, playlistName:newPlaylistinputbox.value})})
-
+                  e.target.innerHTML="Successfully added"
+                  e.target.style.color="greenyellow"
+                  e
                   console.log(e.target.parentElement.dataset.songId)
+                  }
                 })
+                
                 newPlaylistinputbox.setAttribute("list","savedLists")
                 label = document.createElement("label")
                
@@ -383,7 +396,7 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
                 console.log( e.target.parentElement)
               }) 
               songCont.querySelector(".likeButton").dataset.song=JSON.stringify(i)
-            document.body.appendChild(songCont)
+            document.body.querySelector("#allSongs").appendChild(songCont)
             songCont.addEventListener("click", (e) => {
 
               // http://localhost:3000/getSong?sampleId=920683
@@ -391,9 +404,17 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
               // parent.document.querySelector("#audioElement").src=`/songs/${i.id}/audio.mp3`
             })
           }
+        }
         })
+        
     }
     performSongQuery()
+    songsearch.addEventListener("input",(e)=>{
+      console.log(document.querySelectorAll(".songContainer").forEach((e) => {
+        e.remove()
+      }))
+      performSongQuery()
+    })
     document.querySelectorAll('.songContainer').forEach(e => console.log(e));
     document.querySelector('#submitquerybtn').addEventListener('click', function (event) {
       console.log("whoop")

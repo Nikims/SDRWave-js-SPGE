@@ -106,7 +106,7 @@
         }
         .unfriend{
             background: red!important;
-            box-shadow: -5px 5px 1px rgb(112, 7, 7)!important;
+            box-shadow: -5px 5px 1px rgb(112, 7, 7);
 
         }
     </style>
@@ -144,9 +144,7 @@
             }
         }
         window.addEventListener('load', ()=>{
-            document.body.scrollTop=sessionStorage.getItem("scroll");
-        });
-        
+       
        let bio=document.querySelector("#userBio")
        console.log(bio)
         if(bio.contentEditable=="true"){
@@ -217,18 +215,25 @@
                <% }else{%>
             <button onclick="this" id="followBtn">Befriend</button>
             <%}%>
-            <%document.addEventListener("DOMContentLoaded",()=>{
-                try{
-                document.querySelector("#followBtn").onclick=async()=>{
-                    if(!foundFriendship){
-                res=await fetch("/sendFriendRequest",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})}else{
-                    res=await fetch("/unFriend",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
-                }
-                console.log(res)
-            }
-        }catch(e){
-            
-        }%>
+            <script>
+                window.addEventListener("load",()=>{
+                     document.body.scrollTop=sessionStorage.getItem("scroll");
+        });
+        document.addEventListener("DOMContentLoaded",()=>{
+            try{
+                            document.querySelector("#followBtn").onclick=async()=>{
+            <%if(!foundFriendship){%>
+            res=await fetch("/sendFriendRequest",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
+            <%}else{%>
+            res=await fetch("/unfriend",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
+<%}%>
+            console.log(res)
+        }
+    }catch(e){
+        
+    }
+})
+            </script>
             <%}%>
             <p><%-friends.length%> friends</p>
         </span>
