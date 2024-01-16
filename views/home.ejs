@@ -22,13 +22,15 @@
 
         height: 100%;
       }
-
-      #sidebar-cnt
+      
+      #sidebar-cnt 
       {
         position: static;
         max-width: 20%;
         min-width: 10%;
         justify-content: flex-start;
+        flex-direction: row-reverse;
+
         background-color: #303030;
         color: #a1a1a1;
         font-family: "Trebuchet MS",Helvetica,sans-serif;
@@ -42,7 +44,33 @@
         text-transform: none;
         height: 100vh;
       }
+      .arrow{
+        display: none;
+      }
+      @media only screen and (max-width: 600px) {
+        #sidebar-cnt{
+          flex-direction: row-reverse;
 
+        }
+        .arrow{
+        top:50%;
+        left:-12px;
+        font-size: xx-large;
+        position: relative;
+        z-index: 3;
+        height: 1em;
+        width: 1em;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+        /* padding-bottom:2px; */
+        /* padding: 10px; */
+        margin: 0px;
+        background-color: #a1a1a1;
+        color: #1e1e1e;
+        border-radius: 100%;
+      }
+      }
       #sidebar-cnt>ul>li,a
       {
         display: block;
@@ -101,8 +129,8 @@
       #myprofile{
         transition: 0.2s;
       }
-
-      #Acnt-cnt>#player
+      @media only screen and (min-width: 600px) {
+        #Acnt-cnt>#player
       {
         height: 70px;
         transition: .6s;
@@ -111,14 +139,95 @@
         border-width: 2px;
       }
 
-      #Acnt-cnt:hover>#player
+      #Acnt-cnt:hover #player:hover
       {
         transition-timing-function: ease-out;
-
+        height: 100% !important;;
         transition: .6s;
         border-style: solid;
         border-width: 2px;
       }   
+      }
+      @media only screen and (max-width: 600px) {
+        #sideAndCnt-cnt{
+          display: flex;
+          flex-direction: column!important;
+          justify-content: center;
+     
+        }
+        #header-cnt{
+          flex-direction: column;
+          margin: 0px;
+        }
+        #greet{
+          margin-left: 0px!important;
+        }
+        body{
+          height: 100%;
+        }
+        #stations{
+          width: 100%;
+          height: 90vh;
+        }
+        #sidebar-cnt{
+          width: 100%;
+          max-width: 100%;
+          height: fit-content;
+        }
+        #sidebar-cnt ul{
+/* flex-direction: co!important; */
+          height: 20px!important;
+          cursor:click;
+
+        }
+        #sidebar-cnt ul li{
+          display: none;          
+        }
+        #sidebar-cnt.open ul li{
+          display:list-item;
+        max-width: 100%;
+        z-index: 100;
+        background-color: #1e1e1e;
+        width: 100%;
+        position: relative;
+        margin:0px
+          
+        }
+        #sidebar-cnt ul li:first-child{
+  display: block!important;
+  border-top: 0px;
+}
+        #Acnt-cnt{
+          width: 10px;
+          display: flex;
+        }
+        #Acnt-cnt>#player
+      {
+        width: 10px;
+        height: 100%;
+        transition: .6s;
+        transition-timing-function: ease-out;
+        border-style: solid;
+        border-width: 2px;
+        flex-shrink: 0;
+        left:90%;
+      }
+
+      #Acnt-cnt:hover #player:hover
+      {
+        height: 100%;
+        transition-timing-function: ease-out;
+        width: 100% !important;;
+        transition: .6s;
+        border-style: solid;
+        border-width: 2px;
+        left:0%
+      
+      }   
+      }
+
+
+     
       #stationCreateModal{
         background-color: rgb(46, 46, 46);
         border:5px solid #11031a ;
@@ -143,9 +252,10 @@
         color: #b3b3b3;
         font-size: large;
       }
+ 
     </style>
     <script>
-
+      
 
   playlistImport = async () => {
     id = prompt("Enter playlist ID", "PL0Jks44vwre23hgZb_h8p2WgxzWAYqera")
@@ -232,26 +342,51 @@ console.log(dis)
           <li onclick="renderTopHits({liked:true})">Liked songs</li>
           <% } %>
           <li onclick="renderTopHits({liked:false})">Top Hits</li>
-          <li>Settings</li>
+          <li onclick="()">Settings</li>
           <li onclick="logout()">Log out</li>
-        
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
         </ul>
       </div>
-      <iframe id="stations" width="50%" src="/stationsPage"></iframe>
+      <iframe id="stations" width="100%" src="/stationsPage"></iframe>
 
       <div id="Acnt-cnt">
+        <div class="arrow">
+          <h4><</h4>
+        </div>
         <iframe id="player" width="100%" src="/player"></iframe>
 
       </div>
     </div>
   </body>
   <script>
+    if(document.body.offsetWidth<600){
+        console.log("eda")
+        for(let i of document.querySelectorAll("li")){
+          atr=i.getAttribute("onclick")
+          // i.setAttribute("onclick",atr.slice(0,-2))
+        }
+  
+        document.querySelector("#sidebar-cnt ul li:first-child").addEventListener("click",(e)=>{
+          e.preventDefault()
+          e.target.parentElement.parentElement.classList.add("open")
+          console.log(e.target.parentElement.parentElement)
+        })
+        document.querySelector("body").addEventListener("click",(e)=>{
+          console.log("hi")
+          if(e.target!= document.querySelector("#sidebar-cnt li")){
+            console.log("hello")
+            document.querySelector("#sidebar-cnt").classList.remove("open")
+
+          }
+
+        })
+        
+       for(i of document.querySelectorAll("#sidebar-cnt.open > ul > li")){
+        i.addEventListener("click",(e)=>{
+          console.log("ok")
+          eval(e.target.getAttribute("onclick")+"()")
+        })
+      }
+       }
     let AccntCont= document.querySelector("#Acnt-cnt")
    let playerel=document.querySelector("#player")
    let cancelableTimeout;

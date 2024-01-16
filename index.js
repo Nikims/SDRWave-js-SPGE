@@ -900,7 +900,7 @@ router.post("/addToPlaylist", async (req, res) => {
         songs: [songId],
         name: playlistName
       });
-
+      playlist.save()
       user.addedPlaylists = [...user.addedPlaylists, playlist.id];
     } else {
       playlist.songs = [...playlist.songs, songId];
