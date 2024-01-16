@@ -104,6 +104,11 @@
         position: relative;
         top: -10%;
         }
+        .unfriend{
+            background: red!important;
+            box-shadow: -5px 5px 1px rgb(112, 7, 7)!important;
+
+        }
     </style>
 </head>
 
@@ -141,15 +146,7 @@
         window.addEventListener('load', ()=>{
             document.body.scrollTop=sessionStorage.getItem("scroll");
         });
-        document.addEventListener("DOMContentLoaded",()=>{
-            try{
-            document.querySelector("#followBtn").onclick=async()=>{
-            res=await fetch("/sendFriendRequest",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
-            console.log(res)
-        }
-    }catch(e){
         
-    }
        let bio=document.querySelector("#userBio")
        console.log(bio)
         if(bio.contentEditable=="true"){
@@ -210,9 +207,30 @@
         </h2>
         <span style="display: inline-flex;align-items: center;">
             <% if (user.username!= selfUser.username) { %>
+                <script>
+                    console.log(<%-JSON.stringify(friends)%>)
+                </script>
+                <%const foundFriendship = friends.find(friendship => friendship.user1 === selfUser.id || friendship.user2 === selfUser.id);%>
+             <%   if(foundFriendship){%>
+                <button onclick="this" id="followBtn" class="unfriend">Unfriend</button>
+
+               <% }else{%>
             <button onclick="this" id="followBtn">Befriend</button>
             <%}%>
-            <p>9999 friends</p>
+            <%document.addEventListener("DOMContentLoaded",()=>{
+                try{
+                document.querySelector("#followBtn").onclick=async()=>{
+                    if(!foundFriendship){
+                res=await fetch("/sendFriendRequest",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})}else{
+                    res=await fetch("/unFriend",{method:"POST",body:JSON.stringify({username:"<%-user.username%>"})})
+                }
+                console.log(res)
+            }
+        }catch(e){
+            
+        }%>
+            <%}%>
+            <p><%-friends.length%> friends</p>
         </span>
         <p id="dataPar"></p>
         <div id="wall">

@@ -126,10 +126,8 @@
       }
     </style>
   </head>
-<script src="https://www.youtube.com/iframe_api"></script>
-<script src="https://cdn.rawgit.com/labnol/files/master/yt.js"></script>
+
   <body style="height: 100%;" >
-    <div data-video="seIQkVndmcs" data-autoplay="0" data-loop="1" id="youtube-audio"></div>
 
     <script>
       // Get the audio element and create an audio context
@@ -250,29 +248,14 @@
     <div>
       <h2>Tuner</h2>
       <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
-       
+      <form id="frequencyChangeForm" method="POST" action="/api/frequency">
+        <label for="change-freq">New Frequency:</label>
+        <input type="text" id="change-freq" name="frequency">
+        <input type="submit">
+      </form>
    
       <script type="text/javascript">
-        document.querySelector("#tuner-element").addEventListener("focusout",async(e)=>{
-          console.log("debig")
-          host="<%=host%>"
-          console.log(host,host=="http://localhost:8080")
-          if(host=="http://localhost:8080"){
-            host=""
-          }
-          const formData = new FormData();
-          const label = document.createElement("label");
-  label.setAttribute("for", "change-freq");
-  label.innerText = "New Frequency:";
-  formData.set("frequency", e.target.innerText);
-  formData.set("label", label.innerText);
-  ok=(formData)
-  const response = await fetch(`${host}/api/frequency`, {
-    method: 'POST',
-    body:JSON.stringify({ok:JSON.stringify(ok)}) ,
-  });
-        })
-        async function updateTuner() {
+            async function updateTuner() {
           let data = {};
           try {
             res = await fetch("/api/frequency", {
@@ -286,8 +269,25 @@
           const elem = document.getElementById("tuner-element");
           elem.innerHTML = data.frequency;
         }
-        updateTuner();
+        document.querySelector("#frequencyChangeForm").addEventListener("submit",(e)=>{
+        
+          updateTuner()
 
+        })
+        document.querySelector("#tuner-element").addEventListener("focusout",async(e)=>{
+          console.log( e.target.innerHTML)
+        //   console.log("debig")
+        //   host='<%=host%>'
+        //   console.log(host,host=="http://localhost:8080")
+        //   if(host=="http://localhost:8080"){
+        //     host=""
+        //   }
+        //  document.querySelector("#change-freq").innerHTML=e.target.innerText
+        //   document.querySelector("#frequencyChangeForm").submit()
+         
+
+
+      })
       </script>
     </div>
 <div id="avDiv">

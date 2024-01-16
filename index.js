@@ -25,6 +25,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const path = require("path");
 
+
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
 
@@ -98,7 +99,6 @@ sequelize.authenticate().then(async function (errors) {
 
   // console.log(errors) });
 });
-const bcrypt = require("bcrypt");
 const proxy = require("express-http-proxy");
 const app = express();
 app.use(express.static(__dirname + "/public"));
@@ -264,104 +264,11 @@ router.use(async (req, res, next) => {
   }
   return next();
 });
-router.post("/signup", async (req, res) => {
-  try {
-    const { username, password, repeatPassword } = req.body;
-    console.log(req.body);
-    if (password.length < 5) {
-      return res.status(400).json({
-        error: `We don't collect sensitive data, but still, ${password.length} characters?`,
-      });
-    }
-    if (password != repeatPassword) {
-      return res.status(400).json({ error: "Passwords must match :P" });
-    }
-    if (!username || !password) {
-      return res.status(400).json({ error: "All fields are required." });
-    }
+require('./authroutes.js')(router); 
 
-    const existingUser = await User.findOne({ where: { username } });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "Email or username is already in use." });
-    }
-
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const newUser = await User.create({
-      username,
-      hashedPassword,
-    });
-    req.session.userId = newUser.id;
-    console.log(req.session.userId);
-    return res.json({ message: "Signup successful", user: newUser });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-router.post("/signin", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res
-        .status(400)
-        .json({ error: "Both email and password are required." });
-    }
-
-    const existingUser = await User.findOne({ where: { username } });
-
-    if (!existingUser) {
-      return res.status(401).json({ error: "No record of user found." });
-    }
-    console.log(existingUser);
-    console.log(password, existingUser.hashedPassword);
-
-    const passwordMatch = await bcrypt.compare(
-      password,
-      existingUser.hashedPassword
-    );
-
-    if (!passwordMatch) {
-      return res.status(401).json({ error: "Invalid email or password." });
-    }
-    req.session.userId = existingUser.id;
-    return res.json({ message: "Sign-in successful", user: existingUser });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
 router.get("/", (r, res) => {
   res.redirect("/home");
 });
-router.post("/logout", (req, res) => {
-  req.session.destroy();
-
-  res.redirect(303, "/register");
-});
-router.get("/login", (req, res) => {
-  res.render("loginView", { newUser: 0 });
-});
-router.get("/register", (req, res) => {
-  res.render("loginView", { newUser: 1 });
-});
-router.get("/player", async (req, res) => {
-  let user = res.locals.user
-  if (user && user.tunedStationID) {
-    let radioHostname = (await RadioStation.findByPk(user.tunedStationID))
-      .hostSource;
-    res.render("player", { host: radioHostname });
-  } else {
-    res.render("player", { host: 0 });
-  }
-});
-
 router.get("/stationsPage", (req, res) => {
   res.sendFile(__dirname + "/views/Stations.html");
 });
@@ -373,12 +280,26 @@ router.get("/home", async (req, res) => {
   }
   res.render("home", { username: user.username });
 });
+
 router.use(async (req, res, next) => {
   user =  await User.findByPk(req.session.userId)
   if (!user) return res.send(403);
   res.locals.user = user;
   next();
 });
+
+router.get("/player", async (req, res) => {
+  let user = res.locals.user
+
+  if (user && user.tunedStationID) {
+    let radioHostname = await RadioStation.findByPk(user.tunedStationID)
+     radioHostname = radioHostname.hostSource;
+    res.render("player", { host: radioHostname });
+  } else {
+    res.render("player", { host: 0 });
+  }
+});
+
 
 router.get("/chat", async (req, res) => {
   let user = res.locals.user
@@ -475,12 +396,13 @@ router.get("/user", async (req, res) => {
 
   if(!user){
     userthreads = await Thread.findAll({ where: { postedOn: selfUser.id } })
-
+    friends=await Friendship.findAll({where:{[Op.or]:[{user1:user.id},{user2:user.id}]}})
     return res.render("profile", {
 
     user: selfUser,
     selfUser: selfUser,
     threads: userthreads,
+    friends
   });
 }
   console.log(user + "\n\n\n\n\n");
@@ -509,6 +431,7 @@ app.post("/sendFriendRequest", async (req, res) => {
   res.status(200).json({ message: "Friend request sent" });
 });
 
+
 app.post("/acceptFriendRequest", async (req, res) => {
   try {
     const currentUser = res.locals.user;
@@ -532,6 +455,39 @@ app.post("/acceptFriendRequest", async (req, res) => {
    await currentUser.save();
     res.status(200).json({ message: "Friend request accepted" });
   } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+});
+app.post("/unfriend", async (req, res) => {
+  try {
+    const currentUser = res.locals.user;
+    const friendUsername = JSON.parse(req.body).username;
+    const friend = await User.findOne({ where: { username: friendUsername } });
+
+    if (!friend) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if there is an existing friendship between currentUser and friend
+    const existingFriendship = await Friendship.findOne({
+      where: {
+        [Op.or]: [
+          { user1: currentUser.id, user2: friend.id },
+          { user1: friend.id, user2: currentUser.id },
+        ],
+      },
+    });
+
+    if (!existingFriendship) {
+      return res.status(400).json({ error: "No existing friendship found" });
+    }
+
+    // Delete the friendship record
+    await existingFriendship.destroy();
+
+    res.status(200).json({ message: "Unfriended successfully" });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "An error occurred" });
   }
 });
