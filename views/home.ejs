@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SDRwave</title>
     <style>
+      #stations{
+        width: 50%;
+      }
       html
       {
         overflow: hidden;
@@ -387,12 +390,16 @@ console.log(dis)
           }
           
         })</script>
-        <iframe id="player" width="100%" src="/player"></iframe>
+        <iframe id="player" width="60%" src="/player">
+           
+        </iframe>
 
       </div>
     </div>
   </body>
   <script>
+    
+
     console.log(document.querySelector("#stationformbox"))
     document.querySelector("#stationformbox").addEventListener("submit", async (e) => {
       let elementsArray = Array.from(e.target.elements);

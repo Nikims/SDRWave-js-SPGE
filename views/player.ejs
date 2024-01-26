@@ -18,7 +18,7 @@
       #fftCanvas
       {
         width: max-content;
-        height: max-content;
+        height:200px;
         border-width: 4px;
         box-shadow: 0 1px 10px #000;
       }
@@ -137,11 +137,20 @@
 
     <script>
       mode=1
+      eff=0
       // Get the audio element and create an audio context
       t=0
       mouseX=0
+      mouseY=0
+      document.addEventListener("keyup",(e)=>{
+        if(e.keyCode==32){
+          mode=!mode?1:0
+          eff=30
+        }
+      })
       document.addEventListener("mousemove",(e)=>{
         mouseX=e.clientX
+        mouseY=e.clientY
       })
       lol = document.addEventListener("click", () => {
         const audioElement = document.getElementById("audioElement");
@@ -165,6 +174,9 @@
 
         // Function to draw the FFT visualization
         function drawFFT() {
+          if(Math.abs(eff)>0){
+              eff*=0.96
+            }
           t++
           const bufferLength = analyser.frequencyBinCount;
           const dataArray = new Uint8Array(bufferLength);
@@ -174,9 +186,10 @@
 
           ctx.globalCompositeOperation = "copy";
           if(mode==0){
-          ctx.drawImage(ctx.canvas, 0.5, -0.5);
+          
+          ctx.drawImage(ctx.canvas, 0.5+10*Math.tan(eff), -0.5+eff);
           }else{
-            ctx.drawImage(ctx.canvas, 0, 3);
+          ctx.drawImage(ctx.canvas, 0-10*Math.cos(Math.atan2(200-mouseY,-mouseX)), 3-5*Math.sin(Math.atan2(200-mouseY,-mouseX)));
 
           }
           // reset back to normal for subsequent operations.
