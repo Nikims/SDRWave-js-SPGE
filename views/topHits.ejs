@@ -271,7 +271,9 @@
         break;
       case "playlist":
         method='/getSongs?playlistId="<%-playlistId%>"'
+
     }
+    let monitor;
     userId=<%-JSON.stringify(user)%>
     console.log(userId.id)
     function performSongQuery() {
@@ -327,15 +329,21 @@
    `
   </div>
       `
+      nextSong=0
       if(clr=="purple"){
         // songCont.querySelector(".triangle").style.fill="purple"
 songCont.querySelector(".triangle").style.borderBottomColor = "purple";
         songCont.querySelector(".triangle").addEventListener("click",(e)=>{
+          nextSong = e.target.parentElement.parentElement.nextSibling
+
           console.log("/streamAudio?url="+query)
-          window.top[1].document.querySelector("#audioElement").src="/streamAudio?url="+e.target.parentElement.parentElement.dataset.query
+          const audioEl= window.top[1].document.querySelector("#audioElement")
+         audioEl.src="/streamAudio?url="+e.target.parentElement.parentElement.dataset.query
          window.top[1].document.querySelector("#songDiscoverBtn").remove()
-        })
-      }
+      
+       
+        
+      })
       playlists=(<%-JSON.stringify(playlists)%>)
       //func stolen from stackoverflow
       function is_valid_datalist_value(idDataList, inputValue) {
@@ -345,6 +353,19 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
   }
   return false;
 }
+audioEl=window.top[1].document.querySelector("#audioElement")
+audioEl.addEventListener("loadeddata",(em)=>{
+          monitor=setInterval(()=>{
+          if(audioEl.currentTime>audioEl.duration-2){
+            nextSong=nextSong.nextSibling
+            audioEl.src="/streamAudio?url="+nextSong.dataset.query
+            clearInterval(monitor)
+            monitor=null
+            
+          }
+         },400)
+       
+        })
 
       songCont.querySelector(".addToPlaylist").style.width="40px"
       songCont.querySelector(".addToPlaylist").style.heigth="40px"
@@ -406,10 +427,11 @@ songCont.querySelector(".triangle").style.borderBottomColor = "purple";
               playSound(`/getSong?sampleId=${i.sampleId}`)
               // parent.document.querySelector("#audioElement").src=`/songs/${i.id}/audio.mp3`
             })
-          }
+          }}
         }
-        })
         
+        }
+        )
     }
     performSongQuery()
     songsearch.addEventListener("input",(e)=>{

@@ -47,7 +47,7 @@
       .arrow{
         display: none;
       }
-      @media only screen and (max-width: 600px) {
+      @media only screen and (max-width: 680px) {
         #sidebar-cnt{
           flex-direction: row-reverse;
 
@@ -113,7 +113,7 @@
         border-style: solid;
         border-width: 0 0 3px;
         position: relative;
-        width: 110%;
+        width: 100%;
         margin-right: 0;
         overflow: hidden;
         left: 0;
@@ -134,8 +134,9 @@
       }
       #menu{
           display: none!important;
+          cursor: pointer;
         }
-      @media only screen and (min-width: 600px) {
+      @media only screen and (min-width: 680px) {
       
         #Acnt-cnt>#player
       {
@@ -155,7 +156,7 @@
         border-width: 2px;
       }   
       }
-      @media only screen and (max-width: 600px) {
+      @media only screen and (max-width: 680px) {
         #sideAndCnt-cnt{
           display: flex;
           flex-direction: column!important;
@@ -214,14 +215,14 @@
         }
         #Acnt-cnt>#player
       {
-        width: 100%;
+        width: 110%;
         height: 100%;
         transition: .6s;
         transition-timing-function: ease-out;
         border-style: solid;
         border-width: 2px;
         flex-shrink: 0;
-        left:0%;
+        left:-5%;
       }
 
       #Acnt-cnt:hover #player:hover
@@ -232,7 +233,7 @@
         transition: .6s;
         border-style: solid;
         border-width: 2px;
-        left:0%
+        left:-5%
       
       }   
       }
@@ -241,17 +242,24 @@
      
       #stationCreateModal{
         background-color: rgb(46, 46, 46);
-        border:5px solid #11031a ;
+        border:3px solid #ffdc43 ;
         position: fixed;
-        width: 25%;
-        height: 80%;
+        width: min-content;
+        padding: 10px;
+        height: min-content;
         z-index: 5;
         left: 37.5%;
-        border-radius: 2%;
+        border-radius: 1%;
         display: none;
         /* transform: translateX(-50%); */
         top: 5%;
-        transform: translateY(5%);
+        align-self: center;
+        box-shadow: 0px 0px 2px 2px;
+      }
+      #stationCreateModal  *{
+        text-align: center;
+        font-size: larger;
+        margin-top:4%;
       }
       #stationformbox{
         display: flex;
@@ -316,15 +324,18 @@ console.log(dis)
   </head>
   <body style="background-color: rgb(78, 78, 78)">
     <div id="stationCreateModal">
-      <form id="stationformbox" style="padding:10%">
+      <h1 style="color: white;">Please fill in the statio form.</h1>
+      <form id="stationformbox" onsubmit="return false" style="padding:10%">
         <label>Enter station name</label>
-        <input>
+        <input name="stationName">
         <label>Enter station description</label>
-        <input>
-        <input type="checkbox" />
+        <input name="stationDescription">
+        <label> Virtual station?</label>
+        <input name="vstationcheck" type="checkbox" />
         <label>Enter station host adress/playlist link</label>
-        <input>
-      </form>
+        <input name="host">
+        <input type="submit" value="Submit" />
+        </form>
     </div>
     <div id="header-cnt">
       <img src="/OIG.png" style="max-width: 100px" />
@@ -374,6 +385,7 @@ console.log(dis)
             document.querySelector("#player").style.top="90%"
 
           }
+          
         })</script>
         <iframe id="player" width="100%" src="/player"></iframe>
 
@@ -381,12 +393,25 @@ console.log(dis)
     </div>
   </body>
   <script>
-    if(document.body.offsetWidth<600){
-        console.log("eda")
-        for(let i of document.querySelectorAll("li")){
-          atr=i.getAttribute("onclick")
-          
-          // i.setAttribute("onclick",atr.slice(0,-2))
+    console.log(document.querySelector("#stationformbox"))
+    document.querySelector("#stationformbox").addEventListener("submit", async (e) => {
+      let elementsArray = Array.from(e.target.elements);
+      let elementsObject = elementsArray.reduce((obj, item) => {
+        if (item.name) { // check if the element has a name attribute
+          obj[item.name] = item.value; // add the element's name and value to the object
+        }
+        return obj;
+      }, {});
+      await fetch("/createStation",{method:"POST",body:JSON.stringify(elementsObject, null, 2)})
+      toggleStationCreateModal()
+
+    })
+    if (document.body.offsetWidth < 600) {
+      console.log("eda")
+      for (let i of document.querySelectorAll("li")) {
+        atr = i.getAttribute("onclick")
+
+            // i.setAttribute("onclick",atr.slice(0,-2))
 
         }
   

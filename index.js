@@ -157,12 +157,16 @@ async function fetchYouTubePlaylist(playlistId) {
 
       Song.sync();
     }
-    newone = Playlist.create({
+    cnt=await Playlist.findAll({where:{
+      ownerId:user.id
+    }})
+
+    newone = await Playlist.create({
       ownerId: user.id,
       songs: songs,
-      name: "My playlist",
+      name: "Playlist #"+cnt.length,
     });
-    Playlist.sync();
+    await newone.save();
     return newone.id;
   } catch (error) {
     console.error("Error:", error.message);
@@ -181,7 +185,9 @@ app.get('/streamAudio', (req, res) => {
 
 
 router.post("/addPlaylist", async (req, res) => {
-  res.send(fetchYouTubePlaylist(req.body));
+  resp = await fetchYouTubePlaylist(req.body)
+  
+  res.send(resp);
 });
 app.post("/uploadPFP", upload.single("file"), (req, res) => {
   try {
@@ -1030,7 +1036,31 @@ router.get("/discoverSong", async (req, res) => {
     res.status(500, e);
   }
 });
+router.post("/createStation",async (req,res)=>{
+  try {
+    const { host, stationName, stationDescription } = JSON.parse(req.body);
+    if (!stationDescription) {
+      stationDescription = "Just a radio :p";
+    }
+    if (!host || !stationName) {
+      return res
+        .status(400)
+        .json({ error: "YouTube link and station name are required." });
+    }
 
+    const newStation = await RadioStation.create({
+      StationName: stationName,
+      StationDescription: stationDescription,
+      hostSource: host,
+      isBusy: true,
+    });
+    await newStation.save()
+    res.status(200)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+})
 router.post("/createVirtualRadio", async (req, res) => {
   try {
     const { youtubeLink, stationName, stationDescription } = req.body;
