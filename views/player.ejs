@@ -136,6 +136,7 @@
   <body style="height: 100%;" >
 
     <script>
+      mode=1
       // Get the audio element and create an audio context
       t=0
       mouseX=0
@@ -172,7 +173,12 @@
           // Clear the canvas
 
           ctx.globalCompositeOperation = "copy";
+          if(mode==0){
           ctx.drawImage(ctx.canvas, 0.5, -0.5);
+          }else{
+            ctx.drawImage(ctx.canvas, 0, 3);
+
+          }
           // reset back to normal for subsequent operations.
           ctx.globalCompositeOperation = "source-over";
 
@@ -192,7 +198,8 @@
            
             x += barWidth;
          
-       
+            if(mode==0){
+
             if(cnt%funny==0){
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
             ctx.fillRect(
@@ -216,6 +223,19 @@
               barWidth,
              10,
             );
+          }
+          if(mode==1){
+            // console.log(barHeight)
+            if(barHeight>170){
+            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
+            ctx.fillRect(
+              x,
+              0,
+              barWidth,
+             10,
+            );
+            }
+          }
             //  ctx.fillRect(
             //   x,
             //   canvas.height -  ((barHeight / 2) + 30),
