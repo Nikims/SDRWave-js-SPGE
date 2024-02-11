@@ -24,7 +24,8 @@ const ytdl = require('ytdl-core');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const path = require("path");
-
+const { Server } = require("socket.io");
+const { createServer } = require('node:http');
 
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
@@ -99,11 +100,13 @@ sequelize.authenticate().then(async function (errors) {
 
   // console.log(errors) });
 });
+
+
 const proxy = require("express-http-proxy");
 const app = express();
 app.use(express.static(__dirname + "/public"));
 app.use("/songs", express.static(__dirname + "songs"));
-
+const secondServerForSomeGodForesakenReasonIHateSocketIo = createServer(app);
 const session = require("express-session");
 privateMessage.sync()
 const bodyParser = require("body-parser");
@@ -127,9 +130,15 @@ router.use(
     },
   })
 );
-const server = app.listen(3000, () => {
+const server = secondServerForSomeGodForesakenReasonIHateSocketIo.listen(3000, () => {
   console.log(`Server is running on port ${3000}`);
 });
+
+
+
+
+
+
 async function fetchYouTubePlaylist(playlistId) {
   try {
     const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=id&part=snippet&playlistId=${playlistId}&key=${GoogleApiKey}&maxResults=100`;
@@ -176,7 +185,7 @@ async function fetchYouTubePlaylist(playlistId) {
 app.get('/streamAudio', (req, res) => {
   try{
   const url = req.query.url; // The YouTube video URL
-  ytdl(url, { filter: 'audioonly' }).pipe(res);
+    ytdl(url, { filter: 'audioonly' }).pipe(res);
   }catch(e){
     res.send(400)
     //handle this better lol
@@ -211,6 +220,7 @@ app.post("/uploadPFP", upload.single("file"), (req, res) => {
 });
 router.use("/api", async (req, res, next) => {
   try {
+    
     // if (!req.session.userId) {
     //   return res.status(401).json({ error: "Unauthorized. Please sign in." });
     // }
@@ -999,6 +1009,13 @@ router.get("/discoverSong", async (req, res) => {
                 return: "apple_music,spotify",
               };
 
+
+                //  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=id&part=snippet&playlistId=${playlistId}&key=${GoogleApiKey}&maxResults=100`;
+   // const response = await fetch(apiUrl);
+
+
+
+
               axios({
                 method: "post",
                 url: "https://api.audd.io/",
@@ -1008,15 +1025,30 @@ router.get("/discoverSong", async (req, res) => {
                 .then(async (response) => {
                   console.log(response.data);
                   if (response.data.result) {
-                    res.send(response.data.result);
-                    const newSong = await Song.create({
-                      sampleId: rnd,
-                      name: response.data.result.title,
-                      artist: response.data.result.artist,
-                      discoveredLiveCount: 0,
-                      frequencyDiscoveredOn: usr.tunedFrequency,
-                      RadioStationDiscoveredOn: usr.tunedStationID,
-                    });
+                    resultAud=response.data.result
+
+
+                    res.send(resultAud);
+
+                    axios({
+                      method: "get",
+                      url:`https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURI(resultAud.title+" "+resultAud.artist)}&key=${GoogleApiKey}`,
+                    }).then(async (secondRes)=>{
+                      console.log(secondRes)
+                      const newSong = await Song.create({
+                        sampleId: rnd,
+                        name: resultAud.title,
+                        artist: resultAud.artist,
+                        discoveredLiveCount: 0,
+                        frequencyDiscoveredOn: usr.tunedFrequency,
+                        RadioStationDiscoveredOn: usr.tunedStationID,
+                        youtubeId:secondRes.data.items[0].id.videoId
+  
+                      });
+                      await newSong.save()
+                    })
+
+
                   } else {
                     res.send(404);
                   }

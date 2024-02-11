@@ -221,13 +221,13 @@
               barWidth*funny,
               barHeight / 2,
             );
-            
             ctx.strokeRect(
               x+Math.sin(t%100/31.84+omt/10)*10-120,
               canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*2,
               barWidth*funny,
               barHeight / 2,
             );
+           
             }
             ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
             ctx.fillRect(
@@ -239,10 +239,10 @@
           }
           if(mode==1){
             // console.log(barHeight)
-            if(barHeight>170){
+            if(barHeight>0){
             ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
             ctx.fillRect(
-              x,
+              x/2,
               0,
               barWidth,
              10,
@@ -284,14 +284,41 @@
     //     }
     // });
     </script>
-    <div>
+    <div style="color:white">
       <h2>Tuner</h2>
       <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
-      <form id="frequencyChangeForm" method="POST" action="/api/frequency">
-        <label for="change-freq">New Frequency:</label>
-        <input type="text" id="change-freq" name="frequency">
-        <input type="submit">
-      </form>
+      <form id="frequencyChangeForm">
+        <input type="range" id="change-freq" style="width: 80%;"name="frequencym" min="87" max="764" step="0.1" oninput="updateLabel(value)">
+        <input id="trueFreq" name="frequency">
+    
+        <label id="freq-label"></label>
+        <button type="button" id="submit-btn">Submit</button>
+    </form>
+    
+    <script>
+        document.getElementById('submit-btn').addEventListener('click', function(e) {
+            updateLabel()
+            e.preventDefault();
+            var freq = document.getElementById('change-freq').value;
+            var trueFreq = document.getElementById('trueFreq');
+            trueFreq.value = freq;
+    
+            fetch('/api/frequency', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'frequency=' + encodeURIComponent(trueFreq.value+"M"),
+            });
+        });
+
+        function updateLabel(value) {
+            document.getElementById('trueFreq').value = value + 'M';
+
+
+        }
+    </script>
+    
    
       <script type="text/javascript">
             async function updateTuner() {
