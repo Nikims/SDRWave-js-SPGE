@@ -353,7 +353,11 @@ router.get("/chat", async (req, res) => {
 });
 
 
-
+router.get("/listenTo", async (req,res)=>{
+  s=await Song.findByPk(req.query.songid)
+  console.log(s)
+  res.render("song", {song:s})
+})
 router.post("/likeSong", async (req, res) => {
   const songToLike = await Song.findByPk(req.body);
   console.log("\n\n\n\n\n", songToLike);

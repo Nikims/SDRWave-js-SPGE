@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Song Details</title>
+</head>
+<body>
+    <h1>Song Details</h1>
+    <p><strong>Name:</strong> <%= song.name %></p>
+    <p><strong>Artist:</strong> <%= song.artist %></p>
+    <p><strong>ID:</strong> <%= song.id %></p>
+    <p><strong>Created At:</strong> <%= song.createdAt %></p>
+    <p><strong>Discovered Live Count:</strong> <%= song.discoveredLiveCount %></p>
+    <p><strong>Discovery Date:</strong> <%= song.discoveryDate %></p>
+    <p><strong>Frequency Discovered On:</strong> <%= song.frequencyDiscoveredOn %></p>
+    <p><strong>Sample ID:</strong> <%= song.sampleId %></p>
+    <p><strong>Updated At:</strong> <%= song.updatedAt %></p>
+    <p><strong>Likes:</strong> <%= song.likes.length %></p>
+
+    <h2>YouTube Video</h2>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/<%= song.youtubeId %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+    <h2>Playlists</h2>
+    <% if(playlists.length > 0) { %>
+        <ul>
+        <% playlists.forEach(function(playlist) { %>
+            <li><%= playlist.name %></li>
+        <% }); %>
+        </ul>
+    <% } else { %>
+        <p>This song has not been added to any playlists yet.</p>
+    <% } %>
+</body>
+</html>
