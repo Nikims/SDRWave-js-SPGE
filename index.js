@@ -674,12 +674,12 @@ router.post("/getSongs", async (req, res) => {
     let pl = await Playlist.findByPk(req.query.playlistId.slice(1,req.query.playlistId.length-1));
     console.log("\n\n\n\n\n\n\n\n\n\n\n\n"+(req.query.playlistId)+"\n\n\n!!!!!!!!!!!!!!!!!!")
     if(pl){
-    console.log(pl.songs+"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
-    let songs = await Song.findAll({
-      where: {
-        id: pl.songs 
-      }
-    });
+      let songs = []
+    console.log(pl.songs)
+    for(i of pl.songs){
+      m=await Song.findByPk(i)
+      songs.push(m)
+    }
     return res.send(songs)
   }
   return res.send(500)
@@ -913,24 +913,28 @@ router.post("/addToPlaylist", async (req, res) => {
     const user = res.locals.user;
     const parsedBody = JSON.parse(req.body)
     const playlistName = parsedBody.playlistName;
+    console.log(parsedBody)
     const songId = parsedBody.songId;
 
     let playlist = await Playlist.findOne({ where: { name: playlistName, ownerId: user.id } });
 
     if (!playlist) {
-      playlist = await Playlist.create({
+      let playlistc = await Playlist.create({
         ownerId: user.id,
         songs: [songId],
         name: playlistName
       });
-      playlist.save()
-      user.addedPlaylists = [...user.addedPlaylists, playlist.id];
+     await playlistc.save()
+      user.addedPlaylists = [...user.addedPlaylists, playlistc.id];
+      playlistc.songs = [songId];
+      await playlistc.save()
+
+
     } else {
       playlist.songs = [...playlist.songs, songId];
     }
 
     // Save changes
-    await playlist.save();
     await user.save();
 
     // Send success status

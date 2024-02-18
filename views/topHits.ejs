@@ -148,15 +148,7 @@
     flex-basis: fit-content;
     
   }
-  .grow{
-    display: flex;
-    flex-direction: column;
-    max-height:600px;
-    height: max-content!important;
-    transition: 0.3s;
-    fill: rgb(255, 46, 46);
-
-  }
+  
   /* .focused{
     background-color: #7fffd4;
     transition: 0.3s;
@@ -327,7 +319,7 @@
   <rect width="288" height="32" x="176" y="360" fill="var(--ci-primary-color, #255255255)" class="ci-primary"/>
   <polygon fill="var(--ci-primary-color, gray)" points="192 152 128 152 128 88 96 88 96 152 32 152 32 184 96 184 96 248 128 248 128 184 192 184 192 152" class="ci-primary"/>
 </svg>`+
-        (clr=="purple"?(`<div class="triangle"> </div>`):
+        (clr=="purple"?(`<div class="triangle"> </div><br>`):
         (`<a href="${query}" class="triangle" target="_parent"></a>`))+
    `
   </div>
@@ -371,6 +363,8 @@ audioEl.addEventListener("loadeddata",(em)=>{
         })
 
       songCont.querySelector(".addToPlaylist").style.width="40px"
+      songCont.querySelector(".addToPlaylist").style.minWidth="40px"
+
       songCont.querySelector(".addToPlaylist").style.heigth="40px"
       songCont.addEventListener("mouseup", (event) => {
           
@@ -398,6 +392,11 @@ audioEl.addEventListener("loadeddata",(em)=>{
            }
          },false);
               songCont.querySelector(".addToPlaylist").addEventListener("click",(e)=>{
+                if(document.querySelector(".divctn")){
+                  console.log("e")
+                  document.querySelector(".divctn").remove()
+                }
+
                 newPlaylistinputbox=document.createElement("input")
                 newPlaylistinputbox.classList.add("newinputbox")
                 newPlaylistinputbox.placeholder="Enter playlist name"
@@ -416,7 +415,7 @@ audioEl.addEventListener("loadeddata",(em)=>{
                   })
                 submitbtn.addEventListener("click",async (e)=>{
                   if(newPlaylistinputbox.value.length>0){
-                  res = await fetch("/addToPlaylist",{method:"POST",body:JSON.stringify({songId:e.target.parentElement.dataset.songId, playlistName:newPlaylistinputbox.value})})
+                  res = await fetch("/addToPlaylist",{method:"POST",body:JSON.stringify({songId:e.target.parentElement.parentElement.dataset.songId, playlistName:newPlaylistinputbox.value})})
                   e.target.innerHTML="Successfully added"
                   e.target.style.color="greenyellow"
                   e
@@ -435,14 +434,17 @@ audioEl.addEventListener("loadeddata",(em)=>{
                   e.target.parentElement.parentElement.appendChild(divctn)
                 }
                 
-                divctn.class="divctn"
+                divctn.classList.add("divctn")
                 divctn.style.display="flex"
                 divctn.style.justifyContent="center"
                 divctn.innerHTML=""
 
-                divctn.parentElement.appendChild(newPlaylistinputbox)
-                divctn.parentElement.appendChild(submitbtn) 
-                divctn.parentElement.classList.add("grow")
+                divctn.appendChild(newPlaylistinputbox)
+                divctn.appendChild(submitbtn) 
+                e.target.addEventListener("focusout",(ev)=>{
+                  divctn.parentElement.querySelector(".newinputbox").remove()
+                  
+                })
                
                 console.log( e.target.parentElement)
               }) 
