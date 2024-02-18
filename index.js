@@ -893,8 +893,25 @@ router.get("/chatMessages", async (req, res) => {
   
 });
 
+const moment = require('moment');
+const cron = require('node-cron');
+cron.schedule('0 0 * * *', async () => {
+  const twentyFourHoursAgo = moment().subtract(24, 'hours').toDate();
 
+  try {
+    await Message.destroy({
+      where: {
+        timestamp: {
+          [Op.lt]: twentyFourHoursAgo,
+        },
+      },
+    });
 
+    console.log('Successfully deleted messages older than 24 hours.');
+  } catch (error) {
+    console.error('Failed to delete messages:', error);
+  }
+});
 
 
 router.get("/myPlaylists",async (req,res )=>{
