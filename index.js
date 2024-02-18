@@ -297,13 +297,6 @@ router.get("/home", async (req, res) => {
   res.render("home", { username: user.username });
 });
 
-router.use(async (req, res, next) => {
-  user =  await User.findByPk(req.session.userId)
-  if (!user) return res.send(403);
-  res.locals.user = user;
-  next();
-});
-
 router.get("/player", async (req, res) => {
   let user = res.locals.user
 
@@ -315,6 +308,30 @@ router.get("/player", async (req, res) => {
     res.render("player", { host: 0 });
   }
 });
+router.get("/getRadioStations", async (req, res) => {
+  realRadios = await RadioStation.findAll({ where: {} });
+  vRadios = await vStation.findAll({ where: {} });
+  result = realRadios.concat(vRadios);
+  user =  await User.findByPk(req.session.userId)
+
+  if (!user) {
+    for (i of result) {
+      if (i.isSDR) {
+        i.dataValues.loginRequired = true;
+        console.log(i);
+      }
+    }
+  }
+  res.send(result);
+});
+
+router.use(async (req, res, next) => {
+  user =  await User.findByPk(req.session.userId)
+  if (!user) return res.send(403);
+  res.locals.user = user;
+  next();
+});
+
 
 
 router.get("/chat", async (req, res) => {
@@ -336,21 +353,7 @@ router.get("/chat", async (req, res) => {
 });
 
 
-router.get("/getRadioStations", async (req, res) => {
-  realRadios = await RadioStation.findAll({ where: {} });
-  vRadios = await vStation.findAll({ where: {} });
-  result = realRadios.concat(vRadios);
 
-  if (!res.locals.user) {
-    for (i of result) {
-      if (i.isSDR) {
-        i.dataValues.loginRequired = true;
-        console.log(i);
-      }
-    }
-  }
-  res.send(result);
-});
 router.post("/likeSong", async (req, res) => {
   const songToLike = await Song.findByPk(req.body);
   console.log("\n\n\n\n\n", songToLike);

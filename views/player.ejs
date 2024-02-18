@@ -144,7 +144,10 @@
       mouseY=0
       document.addEventListener("keyup",(e)=>{
         if(e.keyCode==32){
-          mode=!mode?1:0
+          if(mode<2){
+          mode++}else{
+            mode=0
+          }
           eff=30
         }
       })
@@ -159,7 +162,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2**10; // Adjust the FFT size as needed
+        analyser.fftSize = 2**8; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -170,10 +173,18 @@
         const canvas = document.getElementById("fftCanvas");
         const ctx = canvas.getContext("2d");
         let hueOffset=0
-        let funny=5
+        let funny=1
 
+        function drawLine(startX, startY, endX, endY) {
+          ctx.beginPath();  // Begin a new line segment
+          ctx.moveTo(startX, startY);   // Set the starting point
+          ctx.lineTo(endX, endY);       // Draw the line to the endpoint
+          ctx.stroke();                 // Render the line
+        }
         // Function to draw the FFT visualization
         function drawFFT() {
+        
+         
           if(Math.abs(eff)>0){
               eff*=0.96
             }
@@ -188,8 +199,12 @@
           if(mode==0){
           
           ctx.drawImage(ctx.canvas, 0.5+10*Math.tan(eff), -0.5+eff);
-          }else{
-          ctx.drawImage(ctx.canvas, 0-10*Math.cos(Math.atan2(200-mouseY,-mouseX)), 3-5*Math.sin(Math.atan2(200-mouseY,-mouseX)));
+          }else if(mode==1){
+          ctx.drawImage(ctx.canvas, 0,1)
+
+          }else if(mode==2){
+            // ctx.clearRect(0,0,600,600)
+            ctx.drawImage(ctx.canvas, 0-10*Math.cos(Math.atan2(300-mouseY,200-mouseX)), -5*Math.sin(Math.atan2(300-mouseY,200-mouseX)));
 
           }
           // reset back to normal for subsequent operations.
@@ -197,18 +212,19 @@
 
           ctx.globalAlpha = 1;
         
-         
+          
           // Draw the FFT data as a bar graph
           const barWidth = ((canvas.width / bufferLength) * 2.5)
           let barHeight;
           let x = 0;
           cnt=0
           omt=0
+          tot=0
           dataArray.forEach((value) => {
             omt++
             
             barHeight = value;
-           
+            tot+=barHeight
             x += barWidth;
          
             if(mode==0){
@@ -217,15 +233,17 @@
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
             ctx.fillRect(
               x+Math.sin(t%100/31.84+omt/10)*10-120,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*2,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*1,
               barWidth*funny,
               barHeight / 2,
             );
+            ctx.strokeStyle="black"
+
             ctx.strokeRect(
-              x+Math.sin(t%100/31.84+omt/10)*10-120,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*2,
-              barWidth*funny,
-              barHeight / 2,
+              x+Math.sin(t%100/31.84+omt/10)*10-121,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*1+1,
+              barWidth*funny+1,
+              barHeight / 2+1,
             );
            
             }
@@ -247,7 +265,20 @@
               barWidth,
              10,
             );
+            
+          
+            ctx.fillRect(
+              x/2,
+              0,
+              barWidth,
+             10,
+            );
             }
+          }
+          if(mode==2){
+            ctx.strokeStyle=`hsl(${omt*2+t**1.2}, 100%, 50%)`
+              drawLine(150,75,150+20+barHeight/3*Math.cos(omt/analyser.fftSize*6.28*2),75+20+barHeight/3*-Math.sin(omt/analyser.fftSize*6.28*2))
+            
           }
             //  ctx.fillRect(
             //   x,
@@ -260,6 +291,10 @@
 
           // Request the next frame
           ctx.globalAlpha = 0.9999;
+          if(mode==2){
+            ctx.globalAlpha = 0.8999;
+
+          }
           //   ctx.fillStyle="white"
           //   ctx.fillRect(0, 0, canvas.width, canvas.height);
           hueOffset+=2
@@ -270,6 +305,7 @@
         // Start playing the audio and visualizing the FFT
         // audioElement.play();
         drawFFT();
+
         lol = null;
       },{ once: true });
     //   document.getElementById('name').addEventListener('keyup', async function(event) {
