@@ -23,8 +23,8 @@
         box-shadow: 0 1px 10px #000;
       }
       #avDiv{
-        max-width: 90%;
-        max-height: 20%;
+        max-width: 80%;
+        max-height: max-content;
         height: min-content;
       }
       #vizPlayerCont>audio
@@ -95,15 +95,17 @@
     border-radius: 4px;
     width: min-content;
     height: 3%;
+    width: 30%;
     margin: 10px;
-    box-shadow: -5px 5px 1px green
+    box-shadow: 0px 5px 0px green
       }
       #songDiscoverBtn:hover{
-        background: chartreuse;
+        background: rgb(0, 255, 13);
     color: black;
     border: none;
     right: 3px;
-    top: 3px;
+    position: relative;
+    top: 5px;
     border-radius: 4px;
     width: 30%;
     height: 3%;
@@ -324,7 +326,7 @@
       <h2>Tuner</h2>
       <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
       <form id="frequencyChangeForm">
-        <input type="range" id="change-freq" style="width: 80%;"name="frequencym" min="87" max="764" step="0.1" oninput="updateLabel(value)">
+        <input type="range" id="change-freq" style="width: 80%;"name="frequencym" min="87" max="104" step="0.05" oninput="updateLabel(value)">
         <input id="trueFreq" name="frequency">
     
         <label id="freq-label"></label>

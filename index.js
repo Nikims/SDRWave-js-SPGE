@@ -779,6 +779,8 @@ router.post("/changeTunedFreq", async (req, res) => {
       }
 
       radioStation.tunedFrequency = parseFloat(newFrequency);
+      curUs.tunedFrequency = parseFloat(newFrequency)
+      await curUs.save()
       await radioStation.save();
 
       return res.json({ message: "Tuned frequency updated successfully." });
@@ -925,6 +927,21 @@ router.get("/myPlaylists",async (req,res )=>{
   console.log(playlists)
   res.render("playlistBrowser",{playlists:result})
 })
+router.get("/embezzlePlaylist", async (req, res) => {
+  const user = res.locals.user;
+  const playlistId = req.query.id;
+  user.addedPlaylists = [...user.addedPlaylists, playlistId];
+  await user.save();
+  res.render("home", { username: user.username });
+});
+router.delete("/deletePlaylist", async (req, res) => {
+  const user = res.locals.user;
+  const playlistId = req.body.id;
+  user.addedPlaylists = user.addedPlaylists.filter(id => id !== playlistId);
+  await user.save();
+  res.json({ success: true });
+});
+
 router.post("/addToPlaylist", async (req, res) => {
   try {
     const user = res.locals.user;
