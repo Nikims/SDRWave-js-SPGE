@@ -323,6 +323,7 @@ toggleStationCreateModal=()=>{
  dis= document.querySelector("#stationCreateModal").style.display
  dis=="block"?document.querySelector("#stationCreateModal").style.display="none":document.querySelector("#stationCreateModal").style.display="block"
 console.log(dis)
+dis=="none"?document.querySelector("#everythingcont").style.filter="blur(5px)":document.querySelector("#everythingcont").style.filter="blur(0px)"
 }
     </script>
   </head>
@@ -341,6 +342,7 @@ console.log(dis)
         <input type="submit" value="Submit" />
         </form>
     </div>
+    <div id="everythingcont">
     <div id="header-cnt">
       <img src="/OIG.png" style="max-width: 100px" />
       <h1>SDRWave</h1>
@@ -397,6 +399,8 @@ console.log(dis)
 
       </div>
     </div>
+  </div>
+
   </body>
   <script>
     

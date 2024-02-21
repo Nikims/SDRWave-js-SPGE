@@ -249,7 +249,7 @@
                 <img onclick="window.location.href='/user?username=<%-thread.posterUsername%>'" width="50px" height="50px" class="pfpSmall" src="/<%- thread.postedBy %>/pfp.png"   onerror="this.src='/default.jpg';">
                 <div class="threadContent">
                     <p style="font-weight:bold;"><%- thread.posterUsername %></p>
-                    <p><%- thread.content %></p>
+                    <p><%= thread.content %></p>
                     <%date=new Date(thread.createdAt)%>
                     <span style="font-size: smallest;position: inherit;top: -65%;left:400%; opacity: 40%;"><%- date.getDate() + '.' + (date.getMonth()+1) + '.' + date.getFullYear(); %></span>
 
