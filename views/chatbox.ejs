@@ -1,9 +1,8 @@
 <!doctype html>
 <html lang="en" style="height: 100%">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chatbox</title>
   <style>
     body {
@@ -12,15 +11,14 @@
       display: flex;
       flex-direction: column;
     }
-
     #chatbox {
       height: 100px;
       overflow-y: scroll;
       border: 1px solid #ccc;
       padding: 10px;
+      width: 100%;
     }
-
-    input {
+    input, select {
       width: 100%;
       padding: 6px 12px;
       background: rgb(31, 32, 35);
@@ -31,14 +29,12 @@
       height: 46px;
       appearance: none;
       transition: border 0.15s ease 0s;
-
-      :focus {
-        outline: none;
-        box-shadow: none;
-        border-color: rgb(100, 153, 255);
-      }
     }
-
+    input:focus {
+      outline: none;
+      box-shadow: none;
+      border-color: rgb(100, 153, 255);
+    }
     #messageinput-cnt {
       display: flex;
       flex-direction: column;
@@ -46,156 +42,123 @@
       max-height: max-content;
       height: 20%;
     }
-  </style>
-</head>
-
-<body style="margin: 0px;width: 93%;">
-  <form>
-    <label style="color: #ccc;" for="chatsrc">I wanna chat with</label>
-  <select name="chatsrc" id="chatsrc">
-    <option value="current">Current station listeners</option>
-    <option value="friends">a friend</option>
-  </select>
-  <div id="friendSelector" style="display: none;">
-    <label style="color: #ccc;" for="friend">called:</label>
-
-    <select name="friend" id="friendSelectorChild">
-
-      
-
-      <% for(i of friends){%>
-        <option value="<%-(friendUsernames[friends.indexOf(i)])%>"><%-(friendUsernames[friends.indexOf(i)])%></option>
-        <%}%>
-    </select>
-  </div>
- 
-</form>
-  <div id="chatbox">
-  </div>
-    <!-- Messages will be displayed here -->
-  <div id="messageinput-cnt">
-    <button onclick="sendMessage()" hidden></button>
-    <div>
-      <input autocomplete="off" type="text" id="messageInput" placeholder="Type your message here" />
-    </div>
-  </div>
-  <script>
-    document.querySelector("#chatsrc").addEventListener("change",async(e)=>{
-      
-      friendSelectorDisplay= document.querySelector("#friendSelector")
-      console.log(e.target.value)
-
-      if(e.target.value=="friends"){
-       friendSelectorDisplay.style.display="block"
-        console.log(friendSelectorDisplay)
-        if( friendSelectorDisplay.querySelectorAll("select").length==0
-){
-  location.reload()
-          
-        }
-      }else{
-        friendSelectorDisplay.style.display="none"
-      }
-      loadMessages()
-    })
-    // Function to load previous messages
-    const messageInput = document.getElementById("messageInput");
-    messageInput.addEventListener("keypress", function (event) {
-      // If the user presses the "Enter" key on the keyboard
-      if (event.key === "Enter") {
-        // Cancel the default action, if needed
-        event.preventDefault();
-        // Trigger the button element with a click
-        chatbox = document.querySelector("#chatbox")
-        chatbox.scrollTop = parseInt(chatbox.scrollHeight) + 30
-        sendMessage();
-      }
-    });
-    function goToProfile(message) {
-      parent.parent.querySelector("#stations").src = `/user?username=${message.senderUsername}`
-    }
-    function loadMessages() {
-      let srcval=document.querySelector("#chatsrc").value
-
-      fetch(`/chatMessages?source=${srcval=="current"?srcval:srcval+"&friendId="+document.querySelector("#friendSelectorChild").value}`)
-        .then((response) => response.json())
-        .then((data) => {
-          const chatbox = document.getElementById("chatbox");
-          chatbox.innerHTML = ""; // Clear the chatbox before loading new messages
-          console.log(data);
-          data.chatMessages.slice().reverse().forEach((message) => {
-            const messageDiv = document.createElement("div");
-            messageDiv.style.display="flex"
-            messageDiv.style.flexDirection="column"
-            submsg=document.createElement("div")
-
-            usrname = document.createElement("span")
-            usrname.innerText = srcval=="current"?message.senderUsername:message.user1 != "<%-myId%>"?document.querySelector("#friendSelectorChild").value:"me"
-            usrname.dataset.username =  usrname.innerText
-            submsg.appendChild(usrname)
-            content = document.createElement("span")
-            content.innerText = ": " + message.messageContent
-            submsg.appendChild(content)
-            messageDiv.appendChild(submsg)
-            var hrElement = document.createElement("hr");
-            hrElement.style.opacity = "10%";
-            hrElement.style.width = "90%";
-            hrElement.style.justifySelf = "flex-start";
-
-
-            messageDiv.appendChild(hrElement);
-            usrname.addEventListener("click", (e) => {
-              (parent.parent.document.querySelector("#stations").src = "/user?" + "username=" + e.target.dataset.username)
-              // parent.parent.src="/usr?"+"username="+ usrname.dataset.usernam
-            })
-            // messageDiv.innerHTML = `<p>: ${message.messageContent}</p>`;
-
-            chatbox.appendChild(messageDiv);
-          });
-        })
-        .catch((error) => console.error("Error:", error));
-      // chatbox.scrollTop=  chatbox.scrollHeight;
-    }
-    document.querySelectorAll(".usernameInChat").forEach(usrname => usrname.addEventListener("click", (e) => {
-      console.log("hi")
-      // parent.parent.querySelector("#stations").src=`/user?username=${usrname.dataset.username}`
-    }))
-    // Function to send a message
-    function sendMessage() {
-      
-      const content = messageInput.value;
-      if(!content){
-        return
-      }
-      fetch("/chatMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content,source:document.querySelector("#chatsrc").value, sendTo:document.querySelector("#friendSelectorChild").value }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          loadMessages(); // Reload messages after sending a new message
-          messageInput.value = "";
-        })
-
-        .catch((error) => console.error("Error:", error));
-    }
-
-    // Load previous messages when the page loads
-    document.addEventListener("DOMContentLoaded", function () {
-      loadMessages();
-      setInterval(loadMessages, 5000)
-    });
-  </script>
-  <style>
     #chatbox>div {
       font-weight: 500;
       color: white;
     }
   </style>
-</body>
+</head>
+<body style="margin: 0; width: 93%;">
+  <form>
+    <label style="color: #ccc;" for="chatsrc">I wanna chat with</label>
+    <select name="chatsrc" id="chatsrc">
+      <option value="current">Current station listeners</option>
+      <option value="friends">a friend</option>
+      
+    </select>
+    <div id="friendSelector" style="display: none;">
+      <label style="color: #ccc;" for="friend">called:</label>
+      <select name="friend" id="friendSelectorChild">
+        <% friends.forEach(function(friend) { %>
+          <script>
+            console.log(`<%-JSON.stringify(friend)%>`)
+          </script>
+          <option value="<%= friendUsernames[friends.indexOf(i)] %>"><%= friendUsernames[friends.indexOf(i)] %></option>        <% }); %>
+      </select>
+    
+    </div>
+  </form>
+  <div id="chatbox"></div>
+  <div id="messageinput-cnt">
+    <button onclick="sendMessage()" hidden></button>
+    <div>
+      <input autocomplete="off" type="text" id="messageInput" placeholder="Type your message here">
+    </div>
+  </div>
+  <script>
+    document.querySelector("#chatsrc").addEventListener("change", e => {
+      const friendSelectorDisplay = document.querySelector("#friendSelector");
+      if(e.target.value == "friends"){
+        friendSelectorDisplay.style.display = "block";
+        if(friendSelectorDisplay.querySelectorAll("select").length == 0){
+          location.reload();
+        }
+      } else {
+        friendSelectorDisplay.style.display = "none";
+      }
+      loadMessages();
+    });
 
+    document.getElementById("messageInput").addEventListener("keypress", function(event) {
+      if(event.key === "Enter") {
+        event.preventDefault();
+        document.querySelector("#chatbox").scrollTop += 30;
+        sendMessage();
+      }
+    });
+
+    function loadMessages() {
+      const srcval = document.querySelector("#chatsrc").value;
+      const endpoint = `/chatMessages?source=${srcval == "current" ? srcval : srcval + "&friendId=" + document.querySelector("#friendSelectorChild").value}`;
+      
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          const chatbox = document.getElementById("chatbox");
+          chatbox.innerHTML = "";
+          data.chatMessages.slice().reverse().forEach(message => {
+            const messageDiv = document.createElement("div");
+            messageDiv.style.display = "flex";
+            messageDiv.style.flexDirection = "column";
+            
+            const submsg = document.createElement("div");
+            const usrname = document.createElement("span");
+            usrname.innerText = srcval == "current" ? message.senderUsername : message.user1 != "<%-myId%>" ? document.querySelector("#friendSelectorChild").value : "me";
+            usrname.dataset.username = usrname.innerText;
+            submsg.appendChild(usrname);
+
+            const content = document.createElement("span");
+            content.innerText = ": " + message.messageContent;
+            submsg.appendChild(content);
+            messageDiv.appendChild(submsg);
+
+            const hrElement = document.createElement("hr");
+            hrElement.style.opacity = "10%";
+            hrElement.style.width = "90%";
+            hrElement.style.justifySelf = "flex-start";
+            messageDiv.appendChild(hrElement);
+            
+            usrname.addEventListener("click", e => {
+              parent.parent.document.querySelector("#stations").src = "/user?" + "username=" + e.target.dataset.username;
+            });
+
+            chatbox.appendChild(messageDiv);
+          });
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    function sendMessage() {
+      const content = messageInput.value;
+      if(!content) return;
+      
+      fetch("/chatMessage", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({content, source: document.querySelector("#chatsrc").value, sendTo: document.querySelector("#friendSelectorChild").value}),
+      })
+      .then(response => response.json())
+      .then(data => {
+        loadMessages();
+        messageInput.value = "";
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      loadMessages();
+      setInterval(loadMessages, 5000);
+    });
+  </script>
+</body>
 </html>
