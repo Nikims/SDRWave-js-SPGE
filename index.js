@@ -1,5 +1,22 @@
+const { Op, json } = require("sequelize");
+const sequelize = require("./db/db");
+const multer = require("multer");
+const ytdl = require("ytdl-core");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+const path = require("path");
+const { Server } = require("socket.io");
+const { createServer } = require("node:http");
+const { Audd } = require("audd.io");
+const fs = require("fs");
+const axios = require("axios");
+const dotenv = require("dotenv");
+const { spawn, exec } = require("node:child_process");
 const express = require("express");
+const GoogleApiKey = process.env.APIGOOGLE;
+dotenv.config();
 const router = express.Router();
+
 let RadioStation = require("./models/Radiostation");
 let User = require("./models/User");
 let vStation = require("./models/vStation");
@@ -9,28 +26,11 @@ let Friendship = require("./models/Friendship");
 let Playlist = require("./models/Playlist");
 let Thread = require("./models/Thread");
 let privateMessage = require("./models/privateMessage");
-
 const DataTypes = require("sequelize/lib/data-types");
-const { Op, json } = require("sequelize");
-const sequelize = require("./db/db");
-const { spawn, exec } = require("node:child_process");
-const fs = require("fs");
-const axios = require("axios");
-const dotenv = require("dotenv");
-dotenv.config();
-const GoogleApiKey = process.env.APIGOOGLE;
-const multer = require("multer");
-const ytdl = require('ytdl-core'); 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-const path = require("path");
-const { Server } = require("socket.io");
-const { createServer } = require('node:http');
 
 //todo, move routes to their appropriate folders and files
 //todo add audd music recognition
 
-const { Audd } = require("audd.io");
 const audd = new Audd(process.env.APISHAZAM);
 console.log(audd, process.env.APISHAZAM);
 sequelize.authenticate().then(async function (errors) {
@@ -101,14 +101,13 @@ sequelize.authenticate().then(async function (errors) {
   // console.log(errors) });
 });
 
-
 const proxy = require("express-http-proxy");
 const app = express();
 app.use(express.static(__dirname + "/public"));
 app.use("/songs", express.static(__dirname + "songs"));
 const secondServerForSomeGodForesakenReasonIHateSocketIo = createServer(app);
 const session = require("express-session");
-privateMessage.sync()
+privateMessage.sync();
 const bodyParser = require("body-parser");
 const e = require("express");
 const { send } = require("node:process");
@@ -130,14 +129,12 @@ router.use(
     },
   })
 );
-const server = secondServerForSomeGodForesakenReasonIHateSocketIo.listen(3000, () => {
-  console.log(`Server is running on port ${3000}`);
-});
-
-
-
-
-
+const server = secondServerForSomeGodForesakenReasonIHateSocketIo.listen(
+  3000,
+  () => {
+    console.log(`Server is running on port ${3000}`);
+  }
+);
 
 async function fetchYouTubePlaylist(playlistId) {
   try {
@@ -166,14 +163,16 @@ async function fetchYouTubePlaylist(playlistId) {
 
       Song.sync();
     }
-    cnt=await Playlist.findAll({where:{
-      ownerId:user.id
-    }})
+    cnt = await Playlist.findAll({
+      where: {
+        ownerId: user.id,
+      },
+    });
 
     newone = await Playlist.create({
       ownerId: user.id,
       songs: songs,
-      name: "Playlist #"+cnt.length,
+      name: "Playlist #" + cnt.length,
     });
     await newone.save();
     return newone.id;
@@ -182,20 +181,19 @@ async function fetchYouTubePlaylist(playlistId) {
   }
 }
 
-app.get('/streamAudio', (req, res) => {
-  try{
-  const url = req.query.url; // The YouTube video URL
-    ytdl(url, { filter: 'audioonly' }).pipe(res);
-  }catch(e){
-    res.send(400)
+app.get("/streamAudio", (req, res) => {
+  try {
+    const url = req.query.url; // The YouTube video URL
+    ytdl(url, { filter: "audioonly" }).pipe(res);
+  } catch (e) {
+    res.send(400);
     //handle this better lol
   }
 });
 
-
 router.post("/addPlaylist", async (req, res) => {
-  resp = await fetchYouTubePlaylist(req.body)
-  
+  resp = await fetchYouTubePlaylist(req.body);
+
   res.send(resp);
 });
 app.post("/uploadPFP", upload.single("file"), (req, res) => {
@@ -220,7 +218,6 @@ app.post("/uploadPFP", upload.single("file"), (req, res) => {
 });
 router.use("/api", async (req, res, next) => {
   try {
-    
     // if (!req.session.userId) {
     //   return res.status(401).json({ error: "Unauthorized. Please sign in." });
     // }
@@ -280,7 +277,7 @@ router.use(async (req, res, next) => {
   }
   return next();
 });
-require('./authroutes.js')(router); 
+require("./authroutes.js")(router);
 
 router.get("/", (r, res) => {
   res.redirect("/home");
@@ -289,7 +286,7 @@ router.get("/stationsPage", (req, res) => {
   res.sendFile(__dirname + "/views/Stations.html");
 });
 router.get("/home", async (req, res) => {
-  let user = await User.findByPk(req.session.userId)
+  let user = await User.findByPk(req.session.userId);
   if (!user || !user.username) {
     console.log(req.session.userId);
     user = { username: "Guest" };
@@ -298,11 +295,11 @@ router.get("/home", async (req, res) => {
 });
 
 router.get("/player", async (req, res) => {
-  let user = res.locals.user
+  let user = await User.findByPk(req.session.userId);
 
   if (user && user.tunedStationID) {
-    let radioHostname = await RadioStation.findByPk(user.tunedStationID)
-     radioHostname = radioHostname.hostSource;
+    let radioHostname = await RadioStation.findByPk(user.tunedStationID);
+    radioHostname = radioHostname.hostSource;
     res.render("player", { host: radioHostname });
   } else {
     res.render("player", { host: 0 });
@@ -312,7 +309,7 @@ router.get("/getRadioStations", async (req, res) => {
   realRadios = await RadioStation.findAll({ where: {} });
   vRadios = await vStation.findAll({ where: {} });
   result = realRadios.concat(vRadios);
-  user =  await User.findByPk(req.session.userId)
+  user = await User.findByPk(req.session.userId);
 
   if (!user) {
     for (i of result) {
@@ -326,38 +323,35 @@ router.get("/getRadioStations", async (req, res) => {
 });
 
 router.use(async (req, res, next) => {
-  user =  await User.findByPk(req.session.userId)
+  user = await User.findByPk(req.session.userId);
   if (!user) return res.send(403);
-  res.locals.user = user;
   next();
 });
 
-
-
 router.get("/chat", async (req, res) => {
-  let user = res.locals.user
- friends=await Friendship.findAll({where:{[Op.or]:[{user1:user.id},{user2:user.id}]}})
- friendUsernames=[]
- for(i of friends){
-  if(i.user1!=user.id){
-    us=await User.findByPk(i.user1)
-    friendUsernames.push(us.username)
-  }else{
-    us=await User.findByPk(i.user2)
-    friendUsernames.push(us.username)
-
+  let user = await User.findByPk(req.session.userId);
+  friends = await Friendship.findAll({
+    where: { [Op.or]: [{ user1: user.id }, { user2: user.id }] },
+  });
+  friendUsernames = [];
+  for (i of friends) {
+    if (i.user1 != user.id) {
+      us = await User.findByPk(i.user1);
+      friendUsernames.push(us.username);
+    } else {
+      us = await User.findByPk(i.user2);
+      friendUsernames.push(us.username);
+    }
   }
- }
- console.log(friendUsernames)
-  res.render("chatbox",{friends,myId:user.id,friendUsernames})
+  console.log(friendUsernames);
+  res.render("chatbox", { friends, myId: user.id, friendUsernames });
 });
 
-
-router.get("/listenTo", async (req,res)=>{
-  s=await Song.findByPk(req.query.songid)
-  console.log(s)
-  res.render("song", {song:s})
-})
+router.get("/listenTo", async (req, res) => {
+  s = await Song.findByPk(req.query.songid);
+  console.log(s);
+  res.render("song", { song: s });
+});
 router.post("/likeSong", async (req, res) => {
   const songToLike = await Song.findByPk(req.body);
   console.log("\n\n\n\n\n", songToLike);
@@ -417,17 +411,18 @@ router.get("/user", async (req, res) => {
     },
   });
 
-  if(!user){
-    userthreads = await Thread.findAll({ where: { postedOn: selfUser.id } })
-    friends=await Friendship.findAll({where:{[Op.or]:[{user1:user.id},{user2:user.id}]}})
+  if (!user) {
+    userthreads = await Thread.findAll({ where: { postedOn: selfUser.id } });
+    friends = await Friendship.findAll({
+      where: { [Op.or]: [{ user1: user.id }, { user2: user.id }] },
+    });
     return res.render("profile", {
-
-    user: selfUser,
-    selfUser: selfUser,
-    threads: userthreads,
-    friends
-  });
-}
+      user: selfUser,
+      selfUser: selfUser,
+      threads: userthreads,
+      friends,
+    });
+  }
   console.log(user + "\n\n\n\n\n");
   userthreads = await Thread.findAll({ where: { postedOn: user.id } });
   res.render("profile", {
@@ -439,7 +434,7 @@ router.get("/user", async (req, res) => {
 app.post("/sendFriendRequest", async (req, res) => {
   const username = JSON.parse(req.body).username;
   console.warn(username);
-  const currentUser = res.locals.user;
+  const currentUser = req.session.userId;
 
   const friend = await User.findOne({ where: { username: username } });
   if (!friend) {
@@ -447,17 +442,18 @@ app.post("/sendFriendRequest", async (req, res) => {
   }
 
   console.log(friend.friendRequests);
-  if (!!friend.friendRequests.indexOf(currentUser.id)) {friend.friendRequests = friend.friendRequests.concat([currentUser.id]);}
-  await friend.save()
+  if (!!friend.friendRequests.indexOf(currentUser.id)) {
+    friend.friendRequests = friend.friendRequests.concat([currentUser.id]);
+  }
+  await friend.save();
   console.log(friend.friendRequests);
 
   res.status(200).json({ message: "Friend request sent" });
 });
 
-
 app.post("/acceptFriendRequest", async (req, res) => {
   try {
-    const currentUser = res.locals.user;
+    const currentUser = req.session.userId;
     const friendUsername = JSON.parse(req.body).username;
     const friend = await User.findOne({ where: { username: friendUsername } });
 
@@ -470,12 +466,12 @@ app.post("/acceptFriendRequest", async (req, res) => {
       res.status(400);
     }
     await Friendship.sync();
-    const frReq =  currentUser.friendRequests
-    console.log(currentUser.friendRequests)
-    currentUser.friendRequests=((frReq)).filter(e => e != friend.id)
-    console.log(currentUser.friendRequests)
+    const frReq = currentUser.friendRequests;
+    console.log(currentUser.friendRequests);
+    currentUser.friendRequests = frReq.filter((e) => e != friend.id);
+    console.log(currentUser.friendRequests);
 
-   await currentUser.save();
+    await currentUser.save();
     res.status(200).json({ message: "Friend request accepted" });
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
@@ -483,7 +479,7 @@ app.post("/acceptFriendRequest", async (req, res) => {
 });
 app.post("/unfriend", async (req, res) => {
   try {
-    const currentUser = res.locals.user;
+    const currentUser = req.session.userId;
     const friendUsername = JSON.parse(req.body).username;
     const friend = await User.findOne({ where: { username: friendUsername } });
 
@@ -517,19 +513,19 @@ app.post("/unfriend", async (req, res) => {
 
 app.post("/denyFriendRequest", async (req, res) => {
   try {
-    const currentUser = res.locals.user;
+    const currentUser = req.session.userId;
     const friendUsername = JSON.parse(req.body).username;
     const fiend = await User.findOne({ where: { username: friendUsername } });
 
     if (!fiend) {
       return res.status(404).json({ error: "User not found" });
     }
-    const frReq =  currentUser.friendRequests
-    console.log(currentUser.friendRequests)
-    currentUser.friendRequests=((frReq)).filter(e => e != fiend.id)
-    console.log(currentUser.friendRequests)
+    const frReq = currentUser.friendRequests;
+    console.log(currentUser.friendRequests);
+    currentUser.friendRequests = frReq.filter((e) => e != fiend.id);
+    console.log(currentUser.friendRequests);
 
-   await currentUser.save();
+    await currentUser.save();
     res.status(200).json({ message: "Friend request denied" });
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
@@ -539,7 +535,7 @@ app.post("/denyFriendRequest", async (req, res) => {
 app.post("/unfriend", async (req, res) => {
   try {
     const username = req.body.username;
-    const currentUser = res.locals.user;
+    const currentUser = req.session.userId;
 
     // Check if the user to be removed as a friend exists
     const friend = await User.findOne({ where: { username: username } });
@@ -569,7 +565,7 @@ app.post("/unfriend", async (req, res) => {
 });
 
 router.get("/myFriends", async (req, res) => {
-  const userId = res.locals.user.dataValues.id;
+  const userId = req.session.userId;
   console.log(userId);
   const friendships = await Friendship.findAll({
     where: {
@@ -585,7 +581,7 @@ router.get("/myFriends", async (req, res) => {
   // Fetch the user's friends
   const friends = await User.findAll({ where: { id: friendUserIds } });
   let result = [];
-  for (i of res.locals.user.friendRequests) {
+  for (i of req.session.userId.friendRequests) {
     usrn = await User.findByPk(i);
     result.push({ id: i, username: usrn.username });
   }
@@ -600,23 +596,34 @@ router.get("/myFriends", async (req, res) => {
 
 router.get("/topHits", async (req, res) => {
   user = await User.findOne({ where: { id: req.session.userId } });
-  playlists=user.addedPlaylists
-  playlistsSerialized=[{name:"hello"}]
-  console.log(playlists)
-  for(i of playlists){
-    cur=await Playlist.findByPk(i)
-    playlistsSerialized.push(cur)
+  playlists = user.addedPlaylists;
+  playlistsSerialized = [{ name: "hello" }];
+  console.log(playlists);
+  for (i of playlists) {
+    cur = await Playlist.findByPk(i);
+    playlistsSerialized.push(cur);
   }
   //likedOnly
-  res.render("topHits", { mode: "all", user: user, playlists:playlistsSerialized ,playlistId:""});
+  res.render("topHits", {
+    mode: "all",
+    user: user,
+    playlists: playlistsSerialized,
+    playlistId: "",
+  });
 });
-router.get("/likedSongs", async (req, res) => { playlists=user.addedPlaylists
-
-  res.render("topHits", { mode: "likedOnly", user: res.locals.user, playlists ,playlistId:"" });
+router.get("/likedSongs", async (req, res) => {
+  user = await User.findOne({ where: { id: req.session.userId } });
+  playlists = user.addedPlaylists;
+  res.render("topHits", {
+    mode: "likedOnly",
+    user: user,
+    playlists,
+    playlistId: "",
+  });
 });
 router.get("/getSongs", async (req, res) => {
-  usr = res.locals.user
- 
+  usr = req.session.userId;
+
   try {
     usr;
     console.log("usr found");
@@ -657,32 +664,41 @@ router.post("/getLikedSongs", async (req, res) => {
   }
 });
 router.get("/playlist", async (req, res) => {
-  if(req.query.id){
+  if (req.query.id) {
     let pl = await Playlist.findByPk(req.query.id);
 
-    if(pl){
-      res.render("topHits", { mode: "playlist", user: res.locals.user, playlistId: req.query.id });
+    if (pl) {
+      res.render("topHits", {
+        mode: "playlist",
+        user: req.session.userId,
+        playlistId: req.query.id,
+      });
     }
   }
 });
 
 router.post("/getSongs", async (req, res) => {
-  
-  user = res.locals.user
-  if(req.query.playlistId){
-    console.log("\n\n\n\n\n\n\n\n"+JSON.stringify(req.query))
-    let pl = await Playlist.findByPk(req.query.playlistId.slice(1,req.query.playlistId.length-1));
-    console.log("\n\n\n\n\n\n\n\n\n\n\n\n"+(req.query.playlistId)+"\n\n\n!!!!!!!!!!!!!!!!!!")
-    if(pl){
-      let songs = []
-    console.log(pl.songs)
-    for(i of pl.songs){
-      m=await Song.findByPk(i)
-      songs.push(m)
+  user = await User.findByPk(req.session.userId);
+  if (req.query.playlistId) {
+    console.log("\n\n\n\n\n\n\n\n" + JSON.stringify(req.query));
+    let pl = await Playlist.findByPk(
+      req.query.playlistId.slice(1, req.query.playlistId.length - 1)
+    );
+    console.log(
+      "\n\n\n\n\n\n\n\n\n\n\n\n" +
+        req.query.playlistId +
+        "\n\n\n!!!!!!!!!!!!!!!!!!"
+    );
+    if (pl) {
+      let songs = [];
+      console.log(pl.songs);
+      for (i of pl.songs) {
+        m = await Song.findByPk(i);
+        songs.push(m);
+      }
+      return res.send(songs);
     }
-    return res.send(songs)
-  }
-  return res.send(500)
+    return res.send(500);
   }
   console.log(req.body);
   const { filterby, radiosource, reversefilterbtn } = JSON.parse(req.body);
@@ -779,8 +795,8 @@ router.post("/changeTunedFreq", async (req, res) => {
       }
 
       radioStation.tunedFrequency = parseFloat(newFrequency);
-      curUs.tunedFrequency = parseFloat(newFrequency)
-      await curUs.save()
+      curUs.tunedFrequency = parseFloat(newFrequency);
+      await curUs.save();
       await radioStation.save();
 
       return res.json({ message: "Tuned frequency updated successfully." });
@@ -799,14 +815,14 @@ router.post("/changeTunedFreq", async (req, res) => {
 // });
 router.post("/chatMessage", async (req, res) => {
   const { content, sendTo, source } = req.body;
-  
+
   const user = await User.findByPk(req.session.userId);
   if (!user) {
     return res.status(404).json({ error: "User not found." });
   }
 
   if (source === "friends") {
-    const friend = await User.findOne({where:{username:sendTo}});
+    const friend = await User.findOne({ where: { username: sendTo } });
     if (!friend) {
       return res.status(404).json({ error: "Friend not found." });
     }
@@ -814,7 +830,7 @@ router.post("/chatMessage", async (req, res) => {
     const newPrivateMessage = await privateMessage.create({
       user1: req.session.userId,
       user2: friend.id,
-      sentBy:1,
+      sentBy: 1,
       messageContent: content,
       timestamp: new Date(),
     });
@@ -825,7 +841,9 @@ router.post("/chatMessage", async (req, res) => {
     });
   } else {
     if (!user.tunedStationID) {
-      return res.status(404).json({ error: "User is not tuned to any radio station." });
+      return res
+        .status(404)
+        .json({ error: "User is not tuned to any radio station." });
     }
 
     const newPublicMessage = await Message.create({
@@ -843,19 +861,18 @@ router.post("/chatMessage", async (req, res) => {
   }
 });
 
-
 router.get("/chatMessages", async (req, res) => {
   try {
-    const user=res.locals.user
-    const sourcequery=req.query.source
-    console.log(sourcequery)
-    if(!sourcequery){
-      return res.send(400)
+    const user = await User.findByPk(req.session.userId);
+    const sourcequery = req.query.source;
+    console.log(sourcequery);
+    if (!sourcequery) {
+      return res.send(400);
     }
     if (sourcequery == "friends") {
       if (req.query.friendId) {
         frId = req.query.friendId;
-       let friend= await User.findOne({where:{username:frId}})
+        let friend = await User.findOne({ where: { username: frId } });
         const chatMessages = await privateMessage.findAll({
           where: {
             [Op.or]: [
@@ -863,42 +880,40 @@ router.get("/chatMessages", async (req, res) => {
               { user2: user.id, user2: friend.id },
             ],
           },
-         order: [["timestamp", "DESC"]],
-         limit: 100,
-       });
+          order: [["timestamp", "DESC"]],
+          limit: 100,
+        });
         return res.json({ chatMessages });
-
       }
-    }else{
-    if (!user || !user.tunedStationID) {
-      return res
-        .status(404)
-        .json({ error: "User is not tuned to any radio station." });
     } else {
-      const radioStationID = user.tunedStationID;
+      if (!user || !user.tunedStationID) {
+        return res
+          .status(404)
+          .json({ error: "User is not tuned to any radio station." });
+      } else {
+        const radioStationID = user.tunedStationID;
 
-      const chatMessages = await Message.findAll({
-        where: {
-          radioStationID: user.tunedStationID,
-        },
-        order: [["timestamp", "DESC"]],
-        limit: 100,
-      });
+        const chatMessages = await Message.findAll({
+          where: {
+            radioStationID: user.tunedStationID,
+          },
+          order: [["timestamp", "DESC"]],
+          limit: 100,
+        });
 
-      return res.json({ chatMessages });
+        return res.json({ chatMessages });
+      }
     }
-  }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-  
 });
 
-const moment = require('moment');
-const cron = require('node-cron');
-cron.schedule('0 0 * * *', async () => {
-  const twentyFourHoursAgo = moment().subtract(24, 'hours').toDate();
+const moment = require("moment");
+const cron = require("node-cron");
+cron.schedule("0 0 * * *", async () => {
+  const twentyFourHoursAgo = moment().subtract(24, "hours").toDate();
 
   try {
     await Message.destroy({
@@ -909,63 +924,67 @@ cron.schedule('0 0 * * *', async () => {
       },
     });
 
-    console.log('Successfully deleted messages older than 24 hours.');
+    console.log("Successfully deleted messages older than 24 hours.");
   } catch (error) {
-    console.error('Failed to delete messages:', error);
+    console.error("Failed to delete messages:", error);
   }
 });
 
-
-router.get("/myPlaylists",async (req,res )=>{
-  user = res.locals.user
-  playlists=user.addedPlaylists
-  result=[]
-  for(i of playlists){
-    temp = await Playlist.findByPk(i)
-    if(temp) result.push(temp)
+router.get("/myPlaylists", async (req, res) => {
+  user = await User.findByPk(req.session.userId);
+  playlists = user.addedPlaylists;
+  result = [];
+  for (i of playlists) {
+    temp = await Playlist.findByPk(i);
+    if (temp) result.push(temp);
   }
-  console.log(playlists)
-  res.render("playlistBrowser",{playlists:result})
-})
+  console.log(playlists);
+  res.render("playlistBrowser", { playlists: result });
+});
 router.get("/embezzlePlaylist", async (req, res) => {
-  const user = res.locals.user;
+  const user = await User.findByPk(req.session.userId);
   const playlistId = req.query.id;
   user.addedPlaylists = [...user.addedPlaylists, playlistId];
   await user.save();
   res.render("home", { username: user.username });
 });
 router.delete("/deletePlaylist", async (req, res) => {
-  const user = res.locals.user;
+  const user = await User.findByPk(req.session.userId);
   const playlistId = req.body.id;
-  user.addedPlaylists = user.addedPlaylists.filter(id => id !== playlistId);
+  user.addedPlaylists = user.addedPlaylists.filter((id) => id !== playlistId);
   await user.save();
   res.json({ success: true });
 });
 
 router.post("/addToPlaylist", async (req, res) => {
   try {
-    const user = res.locals.user;
-    const parsedBody = JSON.parse(req.body)
+    const user = await User.findByPk(req.session.userId);
+    const parsedBody = JSON.parse(req.body);
     const playlistName = parsedBody.playlistName;
-    console.log(parsedBody)
+    console.log(parsedBody);
     const songId = parsedBody.songId;
 
-    let playlist = await Playlist.findOne({ where: { name: playlistName, ownerId: user.id } });
+    let playlist = await Playlist.findOne({
+      where: { name: playlistName, ownerId: user.id },
+    });
 
     if (!playlist) {
       let playlistc = await Playlist.create({
         ownerId: user.id,
         songs: [songId],
-        name: playlistName
+        name: playlistName,
       });
-     await playlistc.save()
       user.addedPlaylists = [...user.addedPlaylists, playlistc.id];
       playlistc.songs = [songId];
-      await playlistc.save()
-
-
+      await user.save();
+      await playlistc.save();
+      await Playlist.sync();
+      await User.sync();
     } else {
       playlist.songs = [...playlist.songs, songId];
+      await playlist.save(); // Save the updated playlist
+      await Playlist.sync();
+      await User.sync();
     }
 
     // Save changes
@@ -975,14 +994,14 @@ router.post("/addToPlaylist", async (req, res) => {
     res.sendStatus(200);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Server Error');
+    res.status(500).send("Server Error");
   }
 });
 
 router.post("/thread", async (req, res) => {
   newthread = await Thread.create({
     postedOn: req.body.username,
-    postedBy: res.locals.user.id,
+    postedBy: req.session.userId.id,
     content: req.body.content,
   });
   newthread.save();
@@ -1054,12 +1073,8 @@ router.get("/discoverSong", async (req, res) => {
                 return: "apple_music,spotify",
               };
 
-
-                //  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=id&part=snippet&playlistId=${playlistId}&key=${GoogleApiKey}&maxResults=100`;
-   // const response = await fetch(apiUrl);
-
-
-
+              //  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=id&part=snippet&playlistId=${playlistId}&key=${GoogleApiKey}&maxResults=100`;
+              // const response = await fetch(apiUrl);
 
               axios({
                 method: "post",
@@ -1070,16 +1085,17 @@ router.get("/discoverSong", async (req, res) => {
                 .then(async (response) => {
                   console.log(response.data);
                   if (response.data.result) {
-                    resultAud=response.data.result
-
+                    resultAud = response.data.result;
 
                     res.send(resultAud);
 
                     axios({
                       method: "get",
-                      url:`https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURI(resultAud.title+" "+resultAud.artist)}&key=${GoogleApiKey}`,
-                    }).then(async (secondRes)=>{
-                      console.log(secondRes)
+                      url: `https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURI(
+                        resultAud.title + " " + resultAud.artist
+                      )}&key=${GoogleApiKey}`,
+                    }).then(async (secondRes) => {
+                      console.log(secondRes);
                       const newSong = await Song.create({
                         sampleId: rnd,
                         name: resultAud.title,
@@ -1087,13 +1103,10 @@ router.get("/discoverSong", async (req, res) => {
                         discoveredLiveCount: 0,
                         frequencyDiscoveredOn: usr.tunedFrequency,
                         RadioStationDiscoveredOn: usr.tunedStationID,
-                        youtubeId:secondRes.data.items[0].id.videoId
-  
+                        youtubeId: secondRes.data.items[0].id.videoId,
                       });
-                      await newSong.save()
-                    })
-
-
+                      await newSong.save();
+                    });
                   } else {
                     res.send(404);
                   }
@@ -1113,7 +1126,7 @@ router.get("/discoverSong", async (req, res) => {
     res.status(500, e);
   }
 });
-router.post("/createStation",async (req,res)=>{
+router.post("/createStation", async (req, res) => {
   try {
     const { host, stationName, stationDescription } = JSON.parse(req.body);
     if (!stationDescription) {
@@ -1131,13 +1144,13 @@ router.post("/createStation",async (req,res)=>{
       hostSource: host,
       isBusy: true,
     });
-    await newStation.save()
-    res.status(200)
+    await newStation.save();
+    res.status(200);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-})
+});
 router.post("/createVirtualRadio", async (req, res) => {
   try {
     const { youtubeLink, stationName, stationDescription } = req.body;

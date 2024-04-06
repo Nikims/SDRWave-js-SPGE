@@ -164,7 +164,7 @@
 
         // Create an analyser node for the audio context
         const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2**8; // Adjust the FFT size as needed
+        analyser.fftSize = 2**10; // Adjust the FFT size as needed
 
         // Connect the audio element to the analyser
         const source = audioContext.createMediaElementSource(audioElement);
@@ -206,7 +206,7 @@
 
           }else if(mode==2){
             // ctx.clearRect(0,0,600,600)
-            ctx.drawImage(ctx.canvas, 0-10*Math.cos(Math.atan2(300-mouseY,200-mouseX)), -5*Math.sin(Math.atan2(300-mouseY,200-mouseX)));
+            ctx.drawImage(ctx.canvas, 0-3*Math.cos(Math.atan2(300-mouseY,200-mouseX)), -3*Math.sin(Math.atan2(300-mouseY,200-mouseX)));
 
           }
           // reset back to normal for subsequent operations.
@@ -234,16 +234,20 @@
             if(cnt%funny==0){
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
             ctx.fillRect(
-              x+Math.sin(t%100/31.84+omt/10)*10-120,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*1,
+              x+Math.sin(t%100/31.84
++omt/20)*10-120,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84
++omt/20)*10-50-mouseX)*1,
               barWidth*funny,
               barHeight / 2,
             );
             ctx.strokeStyle="black"
-
+            ctx.strokeWidth="0.5px"
             ctx.strokeRect(
-              x+Math.sin(t%100/31.84+omt/10)*10-121,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84+omt/10)*10-50-mouseX)*1+1,
+              x+Math.sin(t%100/31.84
++omt/20)*10-121,
+              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84
++omt/20)*10-50-mouseX)*1+1,
               barWidth*funny+1,
               barHeight / 2+1,
             );
@@ -278,8 +282,9 @@
             }
           }
           if(mode==2){
-            ctx.strokeStyle=`hsl(${omt*2+t**1.2}, 100%, 50%)`
-              drawLine(150,75,150+20+barHeight/3*Math.cos(omt/analyser.fftSize*6.28*2),75+20+barHeight/3*-Math.sin(omt/analyser.fftSize*6.28*2))
+            ctx.strokeStyle=`hsl(${omt*2+t**1.2}, ${barHeight * 2}%, 50%)`          
+
+              drawLine(150,75,150+20+barHeight*0.8*Math.cos(omt/analyser.fftSize*6.28*2),75+20+barHeight*0.8*-Math.sin(omt/analyser.fftSize*6.28*2))
             
           }
             //  ctx.fillRect(
@@ -294,7 +299,7 @@
           // Request the next frame
           ctx.globalAlpha = 0.9999;
           if(mode==2){
-            ctx.globalAlpha = 0.8999;
+            ctx.globalAlpha = 0.92;
 
           }
           //   ctx.fillStyle="white"
