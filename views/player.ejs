@@ -1,419 +1,379 @@
 <!doctype html>
 <html lang="en" style='height:100%;'>
-  <head>
-    <meta charset="utf-8" />
-    <title>RTL-SDR FM Radio with FFT Visualizer</title>
-    <style>
-      html
-      {
-        width: 110%;
-        overflow: hidden;
-        background-color: #303030;
 
-      }
-      body{
-        padding-top:20%;
+<head>
+  <meta charset="utf-8" />
+  <title>RTL-SDR FM Radio with FFT Visualizer</title>
+  <style>
+    html {
+      width: 110%;
+      overflow: hidden;
+      background-color: #303030;
 
-      }
-      #fftCanvas
-      {
-        width: max-content;
-        height:200px;
-        border-width: 4px;
-        box-shadow: 0 1px 10px #000;
-      }
-      #avDiv{
-        max-width: 80%;
-        max-height: max-content;
-        height: min-content;
-      }
-      #vizPlayerCont>audio
-      {
-        position: relative;
-        transition: .3s;
-        max-block-size: 30px;
-        align-self: flex-end;
-      }
+    }
 
-      .switch
-      {
-        position: relative;
-        display: flex;
-        width: 60px;
-        height: 34px;
-      }
+    body {
+      padding-top: 20%;
 
-      #checkbox,.switch>input
-      {
-        display: none;
-      }
+    }
 
-      .slider,.slider:before
-      {
-        position: absolute;
-        transition: .4s;
-      }
-      canvas{
-        overflow: hidden;
-        width: 110%;
-      }
+    #fftCanvas {
+      width: max-content;
+      height: 200px;
+      border-width: 4px;
+      box-shadow: 0 1px 10px #000;
+    }
 
-      .slider
-      {
-        cursor: pointer;
-        top: 0;
-        right: 0;
-        left: 0;
-        bottom: 0;
-        background-color: #ccc;
-        border-radius: 34px;
-      }
+    #avDiv {
+      max-width: 80%;
+      max-height: max-content;
+      height: min-content;
+    }
 
-      .slider:before
-      {
-        content: "";
-        height: 26px;
-        width: 26px;
-        left: 4px;
-        bottom: 4px;
-        background-color: #fff;
-        border-radius: 50%;
-      }
-      audio{
-        /* width: min-content;
-        height: min-content; */
-        width: 100%;
-      border:3px solid chartreuse;
-              border-radius: 50px;
-        background: chartreuse;
-      }
-      #songDiscoverBtn{
-        white-space: nowrap;
-        background: chartreuse;
-    color: black;
-    border: none;
-    border-radius: 4px;
-    width: min-content;
-    height: 3%;
-    width: 30%;
-    margin: 10px;
-    box-shadow: 0px 5px 0px green
-      }
-      #songDiscoverBtn:hover{
-        background: rgb(0, 255, 13);
-    color: black;
-    border: none;
-    right: 3px;
-    position: relative;
-    top: 5px;
-    border-radius: 4px;
-    width: 30%;
-    height: 3%;
-    margin: 10px;
-    box-shadow: -2px 2px 1px green
-      }
-      input:checked+.slider
-      {
-        background-color: #2196f3;
-      }
+    #vizPlayerCont>audio {
+      position: relative;
+      transition: .3s;
+      max-block-size: 30px;
+      align-self: flex-end;
+    }
 
-      input:checked+.slider:before
-      {
-        transform: translateX(26px);
-      }
+    .switch {
+      position: relative;
+      display: flex;
+      width: 60px;
+      height: 34px;
+    }
 
-      .slider.round
-      {
-        border-radius: 34px;
-      }
+    #checkbox,
+    .switch>input {
+      display: none;
+    }
 
-      .slider.round:before
-      {
-        border-radius: 50%;
-      }
-     
-    </style>
-  </head>
+    .slider,
+    .slider:before {
+      position: absolute;
+      transition: .4s;
+    }
 
-  <body style="height: 100%;" >
+    canvas {
+      overflow: hidden;
+      width: 110%;
+    }
 
-    <script>
-      mode=1
-      eff=0
-      // Get the audio element and create an audio context
-      t=0
-      mouseX=0
-      mouseY=0
-      document.addEventListener("keyup",(e)=>{
-        if(e.keyCode==32){
-          if(mode<2){
-          mode++}else{
-            mode=0
-          }
-          eff=30
+    .slider {
+      cursor: pointer;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: #fff;
+      border-radius: 50%;
+    }
+
+    audio {
+
+      width: 100%;
+      border: 3px solid chartreuse;
+      border-radius: 50px;
+      background: chartreuse;
+    }
+
+    #songDiscoverBtn {
+      white-space: nowrap;
+      background: chartreuse;
+      color: black;
+      border: none;
+      border-radius: 4px;
+      width: min-content;
+      height: 3%;
+      width: 30%;
+      margin: 10px;
+      box-shadow: 0px 5px 0px green
+    }
+
+    #songDiscoverBtn:hover {
+      background: rgb(0, 255, 13);
+      color: black;
+      border: none;
+      right: 3px;
+      position: relative;
+      top: 5px;
+      border-radius: 4px;
+      width: 30%;
+      height: 3%;
+      margin: 10px;
+      box-shadow: -2px 2px 1px green
+    }
+
+    input:checked+.slider {
+      background-color: #2196f3;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(26px);
+    }
+
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+  </style>
+</head>
+
+<body style="height: 100%;">
+
+  <script>
+    mode = 1
+    eff = 0
+
+    t = 0
+    mouseX = 0
+    mouseY = 0
+    document.addEventListener("keyup", (e) => {
+      if (e.keyCode == 32) {
+        if (mode < 2) {
+          mode++
+        } else {
+          mode = 0
         }
-      })
-      document.addEventListener("mousemove",(e)=>{
-        mouseX=e.clientX
-        mouseY=e.clientY
-      })
-      lol = document.addEventListener("click", () => {
-        const audioElement = document.getElementById("audioElement");
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        eff = 30
+      }
+    })
+    document.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX
+      mouseY = e.clientY
+    })
+    lol = document.addEventListener("click", () => {
+      const audioElement = document.getElementById("audioElement");
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
 
-        // Create an analyser node for the audio context
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2**10; // Adjust the FFT size as needed
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2 ** 10;
 
-        // Connect the audio element to the analyser
-        const source = audioContext.createMediaElementSource(audioElement);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
+      const source = audioContext.createMediaElementSource(audioElement);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
 
-        // Create a canvas for visualization
-        const canvas = document.getElementById("fftCanvas");
-        const ctx = canvas.getContext("2d");
-        let hueOffset=0
-        let funny=1
+      const canvas = document.getElementById("fftCanvas");
+      const ctx = canvas.getContext("2d");
+      let hueOffset = 0
+      let funny = 1
 
-        function drawLine(startX, startY, endX, endY) {
-          ctx.beginPath();  // Begin a new line segment
-          ctx.moveTo(startX, startY);   // Set the starting point
-          ctx.lineTo(endX, endY);       // Draw the line to the endpoint
-          ctx.stroke();                 // Render the line
+      function drawLine(startX, startY, endX, endY) {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+
+      function drawFFT() {
+
+        if (Math.abs(eff) > 0) {
+          eff *= 0.96
         }
-        // Function to draw the FFT visualization
-        function drawFFT() {
-        
-         
-          if(Math.abs(eff)>0){
-              eff*=0.96
-            }
-          t++
-          const bufferLength = analyser.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-          analyser.getByteFrequencyData(dataArray);
+        t++
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteFrequencyData(dataArray);
 
-          // Clear the canvas
+        ctx.globalCompositeOperation = "copy";
+        if (mode == 0) {
 
-          ctx.globalCompositeOperation = "copy";
-          if(mode==0){
-          
-          ctx.drawImage(ctx.canvas, 0.5+10*Math.tan(eff), -0.5+eff);
-          }else if(mode==1){
-          ctx.drawImage(ctx.canvas, 0,1)
+          ctx.drawImage(ctx.canvas, 0.5 + 10 * Math.tan(eff), -0.5 + eff);
+        } else if (mode == 1) {
+          ctx.drawImage(ctx.canvas, 0, 1)
 
-          }else if(mode==2){
-            // ctx.clearRect(0,0,600,600)
-            ctx.drawImage(ctx.canvas, 0-3*Math.cos(Math.atan2(300-mouseY,200-mouseX)), -3*Math.sin(Math.atan2(300-mouseY,200-mouseX)));
+        } else if (mode == 2) {
 
-          }
-          // reset back to normal for subsequent operations.
-          ctx.globalCompositeOperation = "source-over";
+          ctx.drawImage(ctx.canvas, 0 - 3 * Math.cos(Math.atan2(300 - mouseY, 200 - mouseX)), -3 * Math.sin(Math.atan2(300 - mouseY, 200 - mouseX)));
 
-          ctx.globalAlpha = 1;
-        
-          
-          // Draw the FFT data as a bar graph
-          const barWidth = ((canvas.width / bufferLength) * 2.5)
-          let barHeight;
-          let x = 0;
-          cnt=0
-          omt=0
-          tot=0
-          dataArray.forEach((value) => {
-            omt++
-            
-            barHeight = value;
-            tot+=barHeight
-            x += barWidth;
-         
-            if(mode==0){
+        }
 
-            if(cnt%funny==0){
+        ctx.globalCompositeOperation = "source-over";
+
+        ctx.globalAlpha = 1;
+
+        const barWidth = ((canvas.width / bufferLength) * 2.5)
+        let barHeight;
+        let x = 0;
+        cnt = 0
+        omt = 0
+        tot = 0
+        dataArray.forEach((value) => {
+          omt++
+
+          barHeight = value;
+          tot += barHeight
+          x += barWidth;
+
+          if (mode == 0) {
+
+            if (cnt % funny == 0) {
               ctx.fillStyle = `hsl(${-barHeight}, 100%, 50%)`;
-            ctx.fillRect(
-              x+Math.sin(t%100/31.84
-+omt/20)*10-120,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84
-+omt/20)*10-50-mouseX)*1,
-              barWidth*funny,
-              barHeight / 2,
-            );
-            ctx.strokeStyle="black"
-            ctx.strokeWidth="0.5px"
-            ctx.strokeRect(
-              x+Math.sin(t%100/31.84
-+omt/20)*10-121,
-              canvas.height - barHeight / 2 + 20-30/Math.abs(x+Math.sin(t%100/31.84
-+omt/20)*10-50-mouseX)*1+1,
-              barWidth*funny+1,
-              barHeight / 2+1,
-            );
-           
+              ctx.fillRect(
+                x + Math.sin(t % 100 / 31.84
+                  + omt / 20) * 10 - 120,
+                canvas.height - barHeight / 2 + 20 - 30 / Math.abs(x + Math.sin(t % 100 / 31.84
+                  + omt / 20) * 10 - 50 - mouseX) * 1,
+                barWidth * funny,
+                barHeight / 2,
+              );
+              ctx.strokeStyle = "black"
+              ctx.strokeWidth = "0.5px"
+              ctx.strokeRect(
+                x + Math.sin(t % 100 / 31.84
+                  + omt / 20) * 10 - 121,
+                canvas.height - barHeight / 2 + 20 - 30 / Math.abs(x + Math.sin(t % 100 / 31.84
+                  + omt / 20) * 10 - 50 - mouseX) * 1 + 1,
+                barWidth * funny + 1,
+                barHeight / 2 + 1,
+              );
+
             }
-            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
+            ctx.fillStyle = `hsl(${-barHeight * 2 + hueOffset}, ${barHeight / 2}%, ${(barHeight - 120) * 0.5}%)`;
             ctx.fillRect(
               x,
               canvas.height - barHeight / 2 + 30,
               barWidth,
-             10,
+              10,
             );
           }
-          if(mode==1){
-            // console.log(barHeight)
-            if(barHeight>0){
-            ctx.fillStyle = `hsl(${-barHeight * 2+hueOffset}, ${barHeight/2}%, ${(barHeight-120)*0.5}%)`;
-            ctx.fillRect(
-              x/2,
-              0,
-              barWidth,
-             10,
-            );
-            
-          
-            ctx.fillRect(
-              x/2,
-              0,
-              barWidth,
-             10,
-            );
+          if (mode == 1) {
+
+            if (barHeight > 0) {
+              ctx.fillStyle = `hsl(${-barHeight * 2 + hueOffset}, ${barHeight / 2}%, ${(barHeight - 120) * 0.5}%)`;
+              ctx.fillRect(
+                x / 2,
+                0,
+                barWidth,
+                10,
+              );
+
+              ctx.fillRect(
+                x / 2,
+                0,
+                barWidth,
+                10,
+              );
             }
           }
-          if(mode==2){
-            ctx.strokeStyle=`hsl(${omt*2+t**1.2}, ${barHeight * 2}%, 50%)`          
+          if (mode == 2) {
+            ctx.strokeStyle = `hsl(${omt * 2 + t ** 1.2}, ${barHeight * 2}%, 50%)`
 
-              drawLine(150,75,150+20+barHeight*0.8*Math.cos(omt/analyser.fftSize*6.28*2),75+20+barHeight*0.8*-Math.sin(omt/analyser.fftSize*6.28*2))
-            
-          }
-            //  ctx.fillRect(
-            //   x,
-            //   canvas.height -  ((barHeight / 2) + 30),
-            //   barWidth,
-            //   10,
-            // );
-         cnt++
-          });
-
-          // Request the next frame
-          ctx.globalAlpha = 0.9999;
-          if(mode==2){
-            ctx.globalAlpha = 0.92;
+            drawLine(150, 75, 150 + 20 + barHeight * 0.8 * Math.cos(omt / analyser.fftSize * 6.28 * 2), 75 + 20 + barHeight * 0.8 * -Math.sin(omt / analyser.fftSize * 6.28 * 2))
 
           }
-          //   ctx.fillStyle="white"
-          //   ctx.fillRect(0, 0, canvas.width, canvas.height);
-          hueOffset+=2
 
-          requestAnimationFrame(drawFFT);
-        }
-
-        // Start playing the audio and visualizing the FFT
-        // audioElement.play();
-        drawFFT();
-
-        lol = null;
-      },{ once: true });
-    //   document.getElementById('name').addEventListener('keyup', async function(event) {
-    //     if (event.code === 'Enter')
-    //     {
-          
-    //         event.preventDefault();
-    //         const form = document.getElementById('changefreqform');
-    //         // await fetch(<%= host?host:"" %>/api/frequency,{method:"POST",  body: formData})
-            
-    //       form.submit();
-    //     }
-    // });
-    </script>
-    <div style="color:white">
-      <h2>Tuner</h2>
-      <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
-      <form id="frequencyChangeForm">
-        <input type="range" id="change-freq" style="width: 80%;"name="frequencym" min="87" max="104" step="0.05" oninput="updateLabel(value)">
-        <input id="trueFreq" name="frequency">
-    
-        <label id="freq-label"></label>
-        <button type="button" id="submit-btn">Submit</button>
-    </form>
-    
-    <script>
-        document.getElementById('submit-btn').addEventListener('click', function(e) {
-            updateLabel()
-            e.preventDefault();
-            var freq = document.getElementById('change-freq').value;
-            var trueFreq = document.getElementById('trueFreq');
-            trueFreq.value = freq;
-    
-            fetch('/api/frequency', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'frequency=' + encodeURIComponent(trueFreq.value+"M"),
-            });
+          cnt++
         });
 
-        function updateLabel(value) {
-            document.getElementById('trueFreq').value = value + 'M';
-
+        ctx.globalAlpha = 0.9999;
+        if (mode == 2) {
+          ctx.globalAlpha = 0.92;
 
         }
+
+        hueOffset += 2
+
+        requestAnimationFrame(drawFFT);
+      }
+
+      drawFFT();
+
+      lol = null;
+    }, { once: true });
+
+  </script>
+  <div style="color:white">
+    <h2>Tuner</h2>
+    <div>Current frequency: <span contenteditable="true" id="tuner-element"></span></div>
+    <form id="frequencyChangeForm">
+      <input type="range" id="change-freq" style="width: 80%;" name="frequencym" min="87" max="104" step="0.05"
+        oninput="updateLabel(value)">
+      <input id="trueFreq" name="frequency">
+
+      <label id="freq-label"></label>
+      <button type="button" id="submit-btn">Submit</button>
+    </form>
+
+    <script>
+      document.getElementById('submit-btn').addEventListener('click', function (e) {
+        updateLabel()
+        e.preventDefault();
+        var freq = document.getElementById('change-freq').value;
+        var trueFreq = document.getElementById('trueFreq');
+        trueFreq.value = freq;
+
+        fetch('/api/frequency', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'frequency=' + encodeURIComponent(trueFreq.value + "M"),
+        });
+      });
+
+      function updateLabel(value) {
+        document.getElementById('trueFreq').value = value + 'M';
+
+      }
     </script>
-    
-   
-      <script type="text/javascript">
-            async function updateTuner() {
-          let data = {};
-          try {
-            res = await fetch("/api/frequency", {
-              method: "GET",
-            });
-            data = await res.json();
-          } catch (e) {
-            console.error(e);
-            return;
-          }
-          const elem = document.getElementById("tuner-element");
-          elem.innerHTML = data.frequency;
+
+    <script type="text/javascript">
+      async function updateTuner() {
+        let data = {};
+        try {
+          res = await fetch("/api/frequency", {
+            method: "GET",
+          });
+          data = await res.json();
+        } catch (e) {
+          console.error(e);
+          return;
         }
-        document.querySelector("#frequencyChangeForm").addEventListener("submit",(e)=>{
-        
-          updateTuner()
+        const elem = document.getElementById("tuner-element");
+        elem.innerHTML = data.frequency;
+      }
+      document.querySelector("#frequencyChangeForm").addEventListener("submit", (e) => {
 
-        })
-        document.querySelector("#tuner-element").addEventListener("focusout",async(e)=>{
-          console.log( e.target.innerHTML)
-        //   console.log("debig")
-        //   host='<%=host%>'
-        //   console.log(host,host=="http://localhost:8080")
-        //   if(host=="http://localhost:8080"){
-        //     host=""
-        //   }
-        //  document.querySelector("#change-freq").innerHTML=e.target.innerText
-        //   document.querySelector("#frequencyChangeForm").submit()
-         
-
+        updateTuner()
 
       })
-      </script>
-    </div>
-<div id="avDiv">
-  <canvas style="background-color: black;" width="700" height="max-block-size" id="fftCanvas" ></canvas>
-  <div id="vizPlayerCont">
-    <audio controls crossorigin="anonymous" autoplay id="audioElement">
-      <source src="/api/radio/audio.ogg" type="audio/ogg" />
-      Your browser does not support the audio tag.
-    </audio>
+      document.querySelector("#tuner-element").addEventListener("focusout", async (e) => {
+        console.log(e.target.innerHTML)
+
+      })
+    </script>
   </div>
-</div>
-      
-    </canvas>
-  
-    <p id="songName"></p>
-    <button id="songDiscoverBtn" onclick="
-   
+  <div id="avDiv">
+    <canvas style="background-color: black;" width="700" height="max-block-size" id="fftCanvas"></canvas>
+    <div id="vizPlayerCont">
+      <audio controls crossorigin="anonymous" autoplay id="audioElement">
+        <source src="/api/radio/audio.ogg" type="audio/ogg" />
+        Your browser does not support the audio tag.
+      </audio>
+    </div>
+  </div>
+
+  </canvas>
+
+  <p id="songName"></p>
+  <button id="songDiscoverBtn" onclick="
+
     passed=15
     countDown=setInterval(()=>{
       passed--
@@ -422,7 +382,7 @@
     },1000)
     fetch(`/discoverSong`)
     .then((res) => {
-      return res.text(); // Or use res.json() if the response is JSON
+      return res.text(); 
     })
     .then((data) => {
       data=JSON.parse(data)
@@ -431,8 +391,8 @@
       document.getElementById(`songName`).innerText=data.artist+':'+data.title
     })">Discover song</button>
 
-    <iframe style=" margin-top:40px;border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
-    <!-- <div>
+  <iframe style=" margin-top:40px;border-style: none; height: 100%; width: 100%;" src="/chat"></iframe>
+  <!-- <div>
       <h2>Log</h2>
       <button id="log-refresh" onclick="updateLog();">Refresh</button>
       <div id="log-element" style="white-space: pre-wrap"></div>
@@ -453,6 +413,7 @@
         }
         updateLog();
       </script> -->
-    </div>
-  </body>
+  </div>
+</body>
+
 </html>

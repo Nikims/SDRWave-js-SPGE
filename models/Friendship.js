@@ -16,11 +16,9 @@ const Friendship = sequelize.define(
     },
     user1: {
       type: DataTypes.UUID,
-      foreignKey: true,
     },
     user2: {
       type: DataTypes.UUID,
-      foreignKey: true,
     },
     
   },
